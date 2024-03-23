@@ -26,6 +26,23 @@ public static class LocalStorageService
         return folders;
     }
 
+    public static void CreateFolder(string filePath)
+    {
+        var info = new DirectoryInfo(filePath);
+        if (!info.Exists) {
+            info.Create();
+        }
+    }
+    
+    public static void SaveStreamAsFile(string filePath, MemoryStream inputStream, string fileName) {
+        CreateFolder(filePath);
+        inputStream.Position = 0;
+        string path = Path.Combine(filePath, fileName);
+        using(FileStream outputFileStream = new FileStream(path, FileMode.Create)) {
+            inputStream.CopyTo(outputFileStream);
+        }
+    }
+    
     public static Folder GetLocalFiles(string fileFullPath)
     {
         var folder = new Folder();
