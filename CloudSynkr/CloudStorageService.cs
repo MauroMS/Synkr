@@ -1,5 +1,6 @@
 ﻿using CloudSynkr.Models;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 
@@ -88,21 +89,80 @@ public static class CloudStorageService
         return null;
     }
 
-    public static async Task<List<string>> GetAllItemsByQuery(UserCredential credentials, string query, CancellationToken cancellationToken)
+    // public static async Task<List<string>> GetAllItemsByQuery(UserCredential credentials, string query, CancellationToken cancellationToken)
+    // {
+    //     Console.WriteLine("GetAllFoldersByParentId");
+    //     // var credentials = await Login(cancellationToken);
+    //     var items = new List<Folder>();
+    //
+    //     using var driveService = new DriveService(new BaseClientService.Initializer()
+    //         { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
+    //     
+    //     var itemsRequest = driveService.Files.List();
+    //     itemsRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
+    //     itemsRequest.Q = $"{query} and trashed=false";
+    //     var listFoldersRequest = await itemsRequest.ExecuteAsync(cancellationToken);
+    //     items.AddRange(listFoldersRequest.Files.Select(folder => new Folder() { Name = folder.Name, Id = folder.Id, ParentId = folder.Parents[0] }));
+    //
+    //     return items;
+    // }
+
+    public static MemoryStream? DownloadFile(string fileId, UserCredential credentials)
     {
-        Console.WriteLine("GetAllFoldersByParentId");
-        // var credentials = await Login(cancellationToken);
-        var items = new List<Folder>();
+        try
+        {
+            // Create Drive API service.
+            var service = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credentials,
+                ApplicationName = "Synkr"
+            });
 
-        using var driveService = new DriveService(new BaseClientService.Initializer()
-            { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
-        
-        var itemsRequest = driveService.Files.List();
-        itemsRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
-        itemsRequest.Q = $"{query} and trashed=false";
-        var listFoldersRequest = await itemsRequest.ExecuteAsync(cancellationToken);
-        items.AddRange(listFoldersRequest.Files.Select(folder => new Folder() { Name = folder.Name, Id = folder.Id, ParentId = folder.Parents[0] }));
+            var request = service.Files.Get(fileId);
+            var stream = new MemoryStream();
 
-        return items;
+            // Add a handler which will be notified on progress changes.
+            // It will notify on each chunk download and when the
+            // download is completed or failed.
+            request.MediaDownloader.ProgressChanged +=
+                progress =>
+                {
+                    switch (progress.Status)
+                    {
+                        case DownloadStatus.Downloading:
+                        {
+                            Console.WriteLine(progress.BytesDownloaded);
+                            break;
+                        }
+                        case DownloadStatus.Completed:
+                        {
+                            Console.WriteLine($"IDownloadProgress: {progress.Status} ({progress.BytesDownloaded})");
+                            break;
+                        }
+                        case DownloadStatus.Failed:
+                        {
+                            Console.WriteLine("Download failed.");
+                            break;
+                        }
+                    }
+                };
+            request.Download(stream);
+            
+            return stream;
+        }
+        catch (Exception e)
+        {
+            // TODO(developer) - handle error appropriately
+            if (e is AggregateException)
+            {
+                Console.WriteLine("Credential Not found");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return null;
     }
 }
