@@ -10,7 +10,7 @@ public static class CloudStorageService
 {
     private const string ParentIdTemp = "1FZPuYuAYRO3DkcN4H8Bfy8zh1884gjju";
     
-     public static async Task<string> CreateFolder(string folderName, UserCredential credentials, string parentId, CancellationToken cancellationToken)
+    public static async Task<string> CreateFolder(string folderName, UserCredential credentials, string parentId, CancellationToken cancellationToken)
     {
         Console.WriteLine("CreateFolder");
 
@@ -163,6 +163,60 @@ public static class CloudStorageService
             }
         }
 
+        return null;
+    }
+
+    public static string UploadNewFile(UserCredential credentials, string filePath, string name)
+    {
+        try
+        {
+            // Create Drive API service.
+            var service = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credentials,
+                ApplicationName = "Synkr"
+            });
+
+            // Upload file photo.jpg on drive.
+            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = name
+            };
+            FilesResource.CreateMediaUpload request;
+            var path = Path.Combine(filePath, name);
+            // Create a new file on drive.
+            using (var stream = new FileStream(path,
+                       FileMode.Open))
+            {
+                // Create a new file, with metadata and stream.
+                request = service.Files.Create(
+                    fileMetadata, stream, "text/plain");
+                request.Fields = "id";
+                request.Upload();
+            }
+
+            var file = request.ResponseBody;
+            // Prints the uploaded file id.
+            Console.WriteLine("File ID: " + file.Id);
+            return file.Id;
+        }
+        catch (Exception e)
+        {
+            // TODO(developer) - handle error appropriately
+            if (e is AggregateException)
+            {
+                Console.WriteLine("Credential Not found");
+            }
+            else if (e is FileNotFoundException)
+            {
+                Console.WriteLine("File not found");
+            }
+            else
+            {
+                throw;
+            }
+        }
+        
         return null;
     }
 }
