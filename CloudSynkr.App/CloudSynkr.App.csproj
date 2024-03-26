@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>CloudSynkr.App</RootNamespace>
+        <AssemblyName>CloudSynkr.App</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.Apis.Drive.v3" Version="1.67.0.3309" />
+      <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.67.0.1869" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0-preview.2.24128.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0-preview.2.24128.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.0-preview.2.24128.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0-preview.2.24128.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0-preview.2.24128.5" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.2.24128.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="credentials.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Backup\Test\1\2\Copy of Nintendo - Snes M.lpl">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Backup\Test\1\2\Nintendo - Snes M.lpl">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Remove="Backup\**" />
+      <None Remove="Backup2\**" />
+      <None Remove="Backup5\**" />
+      <None Remove="Backup 7\**" />
+      <None Remove="Backup 8\**" />
+      <None Remove="CouldTree.json" />
+      <None Remove="LocalTree.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CloudSynkr.Models\CloudSynkr.Models.csproj" />
+      <ProjectReference Include="..\CloudSynkr.Repositories\CloudSynkr.Repositories.csproj" />
+      <ProjectReference Include="..\CloudSynkr.Services\CloudSynkr.Services.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Backup\**" />
+      <Compile Remove="Backup2\**" />
+      <Compile Remove="Backup5\**" />
+      <Compile Remove="Backup 7\**" />
+      <Compile Remove="Backup 8\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Backup\**" />
+      <EmbeddedResource Remove="Backup2\**" />
+      <EmbeddedResource Remove="Backup5\**" />
+      <EmbeddedResource Remove="Backup 7\**" />
+      <EmbeddedResource Remove="Backup 8\**" />
+    </ItemGroup>
+
+</Project>
