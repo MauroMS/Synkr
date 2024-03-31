@@ -7,7 +7,7 @@ public interface ILocalStorageRepository
 {
     Task<List<Folder>> GetLocalFolders(string folderPath);
 
-    void CreateFolder(string filePath);
+    void CheckIfFolderExistsAndCreate(string filePath);
 
     void SaveStreamAsFile(string filePath, MemoryStream inputStream, string fileName);
 

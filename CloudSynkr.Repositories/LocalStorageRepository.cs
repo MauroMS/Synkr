@@ -30,7 +30,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         return folders;
     }
 
-    public void CreateFolder(string filePath)
+    public void CheckIfFolderExistsAndCreate(string filePath)
     {
         var info = new DirectoryInfo(filePath);
         if (!info.Exists)
@@ -41,7 +41,7 @@ public class LocalStorageRepository : ILocalStorageRepository
 
     public void SaveStreamAsFile(string filePath, MemoryStream inputStream, string fileName)
     {
-        CreateFolder(filePath);
+        CheckIfFolderExistsAndCreate(filePath);
         inputStream.Position = 0;
         string path = Path.Combine(filePath, fileName);
         using (FileStream outputFileStream = new FileStream(path, FileMode.Create))
@@ -53,8 +53,9 @@ public class LocalStorageRepository : ILocalStorageRepository
     public List<File> GetLocalFiles(string fileFullPath)
     {
         var files = new List<File>();
+        //TODO: DOES IT MAKE SENSE FOR THIS CODE TO BE HERE?? MAYBE IT SHOULD JUST RETURN NULL/EMPTY ARRAY
         if (!Directory.Exists(fileFullPath))
-            CreateFolder(fileFullPath);
+            CheckIfFolderExistsAndCreate(fileFullPath);
 
         var filesPaths = Directory.GetFiles(fileFullPath);
         foreach (var file in filesPaths)

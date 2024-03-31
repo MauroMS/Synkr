@@ -1,10 +1,11 @@
 ﻿using CloudSynkr.Models;
 using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
+using CloudSynkr.Utils;
 using Google.Apis.Auth.OAuth2;
 using File = CloudSynkr.Models.File;
 
-namespace CloudSynkr.App;
+namespace CloudSynkr.Services;
 
 public class DownloadService : IDownloadService
 {
@@ -52,7 +53,7 @@ public class DownloadService : IDownloadService
         string parentName, string folderName, CancellationToken cancellationToken)
     {
         var folder =
-            await _cloudStorageRepository.GetBasicFolderInfoByName(credentials, parentId, folderName,
+            await _cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folderName,
                 cancellationToken);
 
         if (folder == null)
@@ -64,13 +65,12 @@ public class DownloadService : IDownloadService
 
         var folderStructure = await _cloudStorageRepository.GetAllFoldersByParentId(credentials, folder.Id, folder.Name,
             folder.ParentId, folder.Name, new CancellationToken());
-        
+
         return folderStructure;
     }
 
     public async Task<bool> DownloadFiles(UserCredential credentials, List<File> files, string localFolder)
     {
-        
         MemoryStream? fileStream;
         var localFiles = _localStorageRepository.GetLocalFiles(localFolder);
         foreach (var cloudFile in files)
@@ -79,28 +79,18 @@ public class DownloadService : IDownloadService
             var localFile = localFiles.FirstOrDefault(f => f.Name == cloudFile.Name);
 
             if (localFile != null &&
-                CheckIfLocalFileDateIsNewer(localFile.LastModified, cloudFile.LastModified))
+                DateHelper.CheckIfDateIsNewer(localFile.LastModified, cloudFile.LastModified))
             {
-                Console.WriteLine($"File {cloudFile.Name} was not downloaded as its version is older than the local version.");
+                Console.WriteLine(
+                    $"File {cloudFile.Name} was not downloaded as its version is older than the local version.");
                 continue;
             }
-            
+
             fileStream = await _cloudStorageRepository.DownloadFile(cloudFile.Id, credentials);
             _localStorageRepository.SaveStreamAsFile(localFolder, fileStream, cloudFile.Name);
             Console.WriteLine($"File {cloudFile.Name} was downloaded to {localFolder}");
         }
 
         return true;
-    }
-
-    private bool CheckIfLocalFileDateIsNewer(DateTimeOffset? localDate, DateTimeOffset? cloudDate)
-    {
-        if (!localDate.HasValue)
-            return false;
-
-        if (!cloudDate.HasValue)
-            return true;
-
-        return DateTimeOffset.Compare(localDate.Value, cloudDate.Value) == 1;
     }
 }

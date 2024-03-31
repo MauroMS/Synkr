@@ -12,7 +12,7 @@ namespace CloudSynkr.Repositories;
 
 public class CloudStorageRepository : ICloudStorageRepository
 {
-    public async Task<string> CreateFolder(string folderName, UserCredential credentials, string parentId,
+    public async Task<Folder?> CreateFolder(UserCredential credentials, string folderName, string parentId,
         CancellationToken cancellationToken)
     {
         Console.WriteLine("CreateFolder");
@@ -33,16 +33,17 @@ public class CloudStorageRepository : ICloudStorageRepository
 
         // Create a new folder on drive.
         var request = driveService.Files.Create(fileMetadata);
-        request.Fields = "id";
+        request.Fields = "id, name, mimeType, modifiedTime, parents";
         var file = await request.ExecuteAsync(cancellationToken);
         // Prints the created folder id.
         Console.WriteLine("Folder ID: " + file.Id);
         Console.WriteLine("Folder Name: " + file.Name);
 
-        return file.Id;
+        return file?.MapFolder();
     }
 
-    public async Task<Folder?> GetBasicFolderInfoByName(UserCredential credentials, string parentId, string folderName,
+    public async Task<Folder?> GetBasicFolderInfoByNameAndParentId(UserCredential credentials, string parentId,
+        string folderName,
         CancellationToken cancellationToken)
     {
         using var driveService = new DriveService(new BaseClientService.Initializer()
@@ -58,7 +59,44 @@ public class CloudStorageRepository : ICloudStorageRepository
 
         var folder = listFoldersRequest.Files.FirstOrDefault();
 
-        return folder?.MapFolder();        
+        return folder?.MapFolder();
+    }
+
+    public async Task<Folder?> GetBasicFolderInfoByNameAndParentName(UserCredential credentials, string parentName,
+        string folderName,
+        CancellationToken cancellationToken)
+    {
+        using var driveService = new DriveService(new BaseClientService.Initializer()
+            { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
+
+        //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
+        var foldersRequest = driveService.Files.List();
+        foldersRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
+        foldersRequest.Q =
+            $"name = '{folderName}' and mimeType = '{FileType.Folder}' and trashed=false";
+        var listFoldersRequest = await foldersRequest.ExecuteAsync(cancellationToken);
+        //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
+
+        var folders = listFoldersRequest.Files;
+        Google.Apis.Drive.v3.Data.File? folder = null;
+        if (folders.Count == 1)
+        {
+            folder = folders.FirstOrDefault();
+        }
+        else
+        {
+            foreach (var fold in listFoldersRequest.Files)
+            {
+                //TODO: DOES THIS WORK??
+                var folderInfo =
+                    await GetBasicFolderInfoByNameAndParentId(credentials, fold.Parents[0], fold.Name,
+                        cancellationToken);
+                if (folderInfo != null && folderInfo.Name.Equals(parentName))
+                    return folderInfo;
+            }
+        }
+
+        return folder?.MapFolder();
     }
 
     public async Task<Folder?> GetBasicFolderInfoById(UserCredential credentials, string folderId,
@@ -67,16 +105,16 @@ public class CloudStorageRepository : ICloudStorageRepository
         //TODO: DO I NEED THIS METHOD??
         using var driveService = new DriveService(new BaseClientService.Initializer()
             { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
-    
+
         //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
         var foldersRequest = driveService.Files.List();
         foldersRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
         foldersRequest.Q = $"mimeType = '{FileType.Folder}' and trashed=false";
         var listFoldersRequest = await foldersRequest.ExecuteAsync(cancellationToken);
         //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
-    
+
         var folder = listFoldersRequest.Files.FirstOrDefault(folder => folder.Id == folderId);
-    
+
         return folder?.MapFolder();
     }
 
@@ -155,14 +193,14 @@ public class CloudStorageRepository : ICloudStorageRepository
 
         var filesRequest = driveService.Files.List();
         filesRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
-        filesRequest.Q = $"mimeType != '{FileType.Folder}' and trashed = false and '{parentId}' in parents";
-
+        filesRequest.Q = $"'{parentId}' in parents and mimeType != '{FileType.Folder}' and trashed = false";
+        //TODO: PARENT NAME TO QUERY??
         var listFilesRequest = await filesRequest.ExecuteAsync(cancellationToken);
         var files = listFilesRequest.Files.Select(f => new File()
         {
             Name = f.Name,
             Id = f.Id,
-            ParentId = parentId,
+            ParentId = f.Parents[0],
             LastModified = f.ModifiedTimeDateTimeOffset,
             MimeType = f.MimeType,
             ParentName = parentName
@@ -240,7 +278,8 @@ public class CloudStorageRepository : ICloudStorageRepository
         return null;
     }
 
-    public string UploadNewFile(UserCredential credentials, string filePath, string name)
+    public string CreateFile(UserCredential credentials, string localFilePath, string parentId, string name,
+        string mimeType)
     {
         try
         {
@@ -251,20 +290,21 @@ public class CloudStorageRepository : ICloudStorageRepository
                 ApplicationName = "Synkr"
             });
 
-            // Upload file photo.jpg on drive.
             var fileMetadata = new Google.Apis.Drive.v3.Data.File()
             {
-                Name = name
+                Name = name,
+                Parents =
+                [
+                    parentId
+                ]
             };
             FilesResource.CreateMediaUpload request;
-            var path = Path.Combine(filePath, name);
             // Create a new file on drive.
-            using (var stream = new FileStream(path,
+            using (var stream = new FileStream(localFilePath,
                        FileMode.Open))
             {
                 // Create a new file, with metadata and stream.
-                request = service.Files.Create(
-                    fileMetadata, stream, "text/plain");
+                request = service.Files.Create(fileMetadata, stream, mimeType);
                 request.Fields = "id";
                 request.Upload();
             }
