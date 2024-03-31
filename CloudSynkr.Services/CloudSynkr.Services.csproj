@@ -8,10 +8,13 @@
 
     <ItemGroup>
       <PackageReference Include="Google.Apis.Auth" Version="1.67.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0-preview.2.24128.5" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\CloudSynkr.Models\CloudSynkr.Models.csproj" />
+      <ProjectReference Include="..\CloudSynkr.Repositories\CloudSynkr.Repositories.csproj" />
+      <ProjectReference Include="..\CloudSynkr.Utils\CloudSynkr.Utils.csproj" />
     </ItemGroup>
 
 </Project>

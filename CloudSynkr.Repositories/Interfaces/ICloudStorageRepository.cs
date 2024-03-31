@@ -6,10 +6,10 @@ namespace CloudSynkr.Repositories.Interfaces;
 
 public interface ICloudStorageRepository
 {
-    Task<string> CreateFolder(string folderName, UserCredential credentials, string parentId,
+    Task<Folder?> CreateFolder(UserCredential credentials, string folderName, string parentId,
         CancellationToken cancellationToken);
 
-    Task<Folder?> GetBasicFolderInfoByName(UserCredential credentials, string parentId, string folderName,
+    Task<Folder?> GetBasicFolderInfoByNameAndParentId(UserCredential credentials, string parentId, string folderName,
         CancellationToken cancellationToken);
 
     Task<Folder?> GetBasicFolderInfoById(UserCredential credentials, string folderId,
@@ -23,7 +23,7 @@ public interface ICloudStorageRepository
 
     Task<MemoryStream?> DownloadFile(string fileId, UserCredential credentials);
 
-    string UploadNewFile(UserCredential credentials, string filePath, string name);
+    string CreateFile(UserCredential credentials, string localFilePath, string parentId, string name, string mimeType);
 
     Task<string> UpdateFile(UserCredential credentials, string filePath, File file);
 }
