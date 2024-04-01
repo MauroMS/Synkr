@@ -1,7 +1,6 @@
 ﻿using CloudSynkr.Services.Interfaces;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
-using Google.Apis.Logging;
 using Google.Apis.Util.Store;
 
 namespace CloudSynkr.Services;
@@ -11,7 +10,7 @@ public class AuthService : IAuthService
     private readonly List<string> _scopes = [DriveService.ScopeConstants.Drive];
     private readonly string clientInfoPath = Path.Combine(Directory.GetCurrentDirectory(), "credentials.json");
     private UserCredential? _userCredential;
-    private readonly ILogger _logger;
+    // private readonly ILogger _logger;
 
     // public AuthService(ILogger logger)
     // {

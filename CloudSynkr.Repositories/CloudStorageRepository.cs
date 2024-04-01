@@ -137,7 +137,6 @@ public class CloudStorageRepository : ICloudStorageRepository
         //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
         var foldersRequest = driveService.Files.List();
         foldersRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
-        // foldersRequest.Q = $"mimeType = '{FileType.Folder}' and trashed=false and '{folderId}' in parents";
         foldersRequest.Q = $"trashed=false and '{folderId}' in parents";
         var listFoldersRequest = await foldersRequest.ExecuteAsync(cancellationToken);
         //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
@@ -160,27 +159,8 @@ public class CloudStorageRepository : ICloudStorageRepository
                     cancellationToken);
             folder.Children.AddRange(subFolders);
         }
-
         folders.Add(folder);
-
-        // folders.AddRange(listFoldersRequest.Files.Select(folder => new Folder()
-        //     { Name = folder.Name, Id = folder.Id, ParentId = folder.Parents[0], Type = FileType.Folder }));
-
-        // foreach (var fold in listFoldersRequest.Files)
-        // {
-        //     Console.WriteLine($"Id: {fold.Id}");
-        //     Console.WriteLine($"Name: {fold.Name}");
-        //     Console.WriteLine($"Type: {fold.MimeType}");
-        //     if (fold.Parents != null)
-        //         foreach (var parent in fold.Parents)
-        //         {
-        //             Console.WriteLine($"{parent}");
-        //         }
-        //
-        //     Console.WriteLine($"-----------------------------------");
-        //     Console.WriteLine($"-----------------------------------");
-        // }
-
+        
         return folders;
     }
 
@@ -194,7 +174,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         var filesRequest = driveService.Files.List();
         filesRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
         filesRequest.Q = $"'{parentId}' in parents and mimeType != '{FileType.Folder}' and trashed = false";
-        //TODO: PARENT NAME TO QUERY??
+        
         var listFilesRequest = await filesRequest.ExecuteAsync(cancellationToken);
         var files = listFilesRequest.Files.Select(f => new File()
         {
@@ -205,17 +185,7 @@ public class CloudStorageRepository : ICloudStorageRepository
             MimeType = f.MimeType,
             ParentName = parentName
         }).ToList();
-
-        // foreach (var file in files)
-        // {
-        //     Console.WriteLine($"Id: {file.Id}");
-        //     Console.WriteLine($"Name: {file.Name}");
-        //     Console.WriteLine($"MymeType: {file.MimeType}");
-        //     Console.WriteLine($"Last Modified: {file.LastModified}");
-        //     Console.WriteLine($"Parent Id: {file.ParentId}");
-        //     Console.WriteLine($"Parent Name: {file.ParentName}");
-        // }
-
+        
         return files;
     }
 
@@ -223,7 +193,6 @@ public class CloudStorageRepository : ICloudStorageRepository
     {
         try
         {
-            // Create Drive API service.
             var service = new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credentials,
@@ -283,7 +252,6 @@ public class CloudStorageRepository : ICloudStorageRepository
     {
         try
         {
-            // Create Drive API service.
             var service = new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credentials,
@@ -299,35 +267,32 @@ public class CloudStorageRepository : ICloudStorageRepository
                 ]
             };
             FilesResource.CreateMediaUpload request;
-            // Create a new file on drive.
+            
             using (var stream = new FileStream(localFilePath,
                        FileMode.Open))
             {
-                // Create a new file, with metadata and stream.
                 request = service.Files.Create(fileMetadata, stream, mimeType);
                 request.Fields = "id";
                 request.Upload();
             }
 
             var file = request.ResponseBody;
-            // Prints the uploaded file id.
             Console.WriteLine("File ID: " + file.Id);
             return file.Id;
         }
         catch (Exception e)
         {
-            // TODO(developer) - handle error appropriately
-            if (e is AggregateException)
+            switch (e)
             {
-                Console.WriteLine("Credential Not found");
-            }
-            else if (e is FileNotFoundException)
-            {
-                Console.WriteLine("File not found");
-            }
-            else
-            {
-                throw;
+                // TODO(developer) - handle error appropriately
+                case AggregateException:
+                    Console.WriteLine("Credential Not found");
+                    break;
+                case FileNotFoundException:
+                    Console.WriteLine("File not found");
+                    break;
+                default:
+                    throw;
             }
         }
 
@@ -338,23 +303,20 @@ public class CloudStorageRepository : ICloudStorageRepository
     {
         try
         {
-            // Create Drive API service.
             var service = new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credentials,
                 ApplicationName = "Synkr"
             });
 
-            // Note: not all fields are writeable watch out, you cant just send uploadedFile back.
             var updateFileBody = new Google.Apis.Drive.v3.Data.File()
             {
                 Name = file.Name,
                 MimeType = file.MimeType
             };
-            // Then upload the file again with a new name and new data.
+            
             await using (var uploadStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                // Update the file id, with new metadata and stream.
                 var updateRequest = service.Files.Update(updateFileBody, file.Id, uploadStream, file.MimeType);
                 var result = await updateRequest.UploadAsync(CancellationToken.None);
 
@@ -379,18 +341,17 @@ public class CloudStorageRepository : ICloudStorageRepository
         }
         catch (Exception e)
         {
-            // TODO(developer) - handle error appropriately
-            if (e is AggregateException)
+            switch (e)
             {
-                Console.WriteLine("Credential Not found");
-            }
-            else if (e is FileNotFoundException)
-            {
-                Console.WriteLine("File not found");
-            }
-            else
-            {
-                throw;
+                // TODO(developer) - handle error appropriately
+                case AggregateException:
+                    Console.WriteLine("Credential Not found");
+                    break;
+                case FileNotFoundException:
+                    Console.WriteLine("File not found");
+                    break;
+                default:
+                    throw;
             }
         }
 

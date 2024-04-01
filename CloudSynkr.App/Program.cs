@@ -17,12 +17,12 @@ builder.Services.AddTransient<IUploadService, UploadService>();
 builder.Services.AddTransient<IDownloadService, DownloadService>();
 builder.Services.AddTransient<ICloudStorageRepository, CloudStorageRepository>();
 builder.Services.AddTransient<ILocalStorageRepository, LocalStorageRepository>();
-// builder.Services.AddSerilog(config =>
-// {
-//     config.ReadFrom.Configuration(builder.Configuration)
-//         .WriteTo.Console();
-//     // .WriteTo.File()
-// });
+builder.Services.AddSerilog(config =>
+{
+    config.ReadFrom.Configuration(builder.Configuration)
+        .WriteTo.Console();
+    // .WriteTo.File()
+});
 // builder.Logging.AddSerilog()
 using var host = builder.Build();
 
