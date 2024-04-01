@@ -25,8 +25,7 @@ public class SyncService : ISyncService
         var credentials = await _authService.Login(cancellationToken);
         if (credentials == null)
             return false;
-
-
+        
         await Download(credentials, cancellationToken);
         await Upload(credentials, cancellationToken);
 

@@ -6,6 +6,11 @@ namespace CloudSynkr.Repositories;
 
 public class LocalStorageRepository : ILocalStorageRepository
 {
+    public LocalStorageRepository()
+    {
+        
+    }
+    
     public async Task<List<Folder>> GetLocalFolders(string folderPath)
     {
         var folders = new List<Folder>();
@@ -43,10 +48,18 @@ public class LocalStorageRepository : ILocalStorageRepository
 
     public void CheckIfFolderExistsAndCreate(string filePath)
     {
-        var info = new DirectoryInfo(filePath);
-        if (!info.Exists)
+        try
         {
-            info.Create();
+            var info = new DirectoryInfo(filePath);
+            if (!info.Exists)
+            {
+                info.Create();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Folder '{filePath}' could not be created.");
+            throw;
         }
     }
 
@@ -54,30 +67,48 @@ public class LocalStorageRepository : ILocalStorageRepository
     {
         CheckIfFolderExistsAndCreate(filePath);
         inputStream.Position = 0;
-        string path = Path.Combine(filePath, fileName);
-        using (FileStream outputFileStream = new FileStream(path, FileMode.Create))
+        var path = Path.Combine(filePath, fileName);
+        
+        try
         {
-            inputStream.CopyTo(outputFileStream);
+            using (var outputFileStream = new FileStream(path, FileMode.Create))
+            {
+                inputStream.CopyTo(outputFileStream);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not save file '{fileName}'");
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
         }
     }
 
     public List<File> GetLocalFiles(string fileFullPath)
     {
         var files = new List<File>();
-        //TODO: DOES IT MAKE SENSE FOR THIS CODE TO BE HERE?? MAYBE IT SHOULD JUST RETURN NULL/EMPTY ARRAY
-        // if (!Directory.Exists(fileFullPath))
-        //     CheckIfFolderExistsAndCreate(fileFullPath);
-
-        var filesPaths = Directory.GetFiles(fileFullPath);
-        foreach (var file in filesPaths)
+        try
         {
-            files.Add(new File()
+            var filesPaths = Directory.GetFiles(fileFullPath);
+            foreach (var file in filesPaths)
             {
-                Name = GetName(file),
-                Path = file,
-                LastModified = System.IO.File.GetLastWriteTimeUtc(file),
-                ParentName = GetParentName(file)
-            });
+                files.Add(new File()
+                {
+                    Name = GetName(file),
+                    Path = file,
+                    LastModified = System.IO.File.GetLastWriteTimeUtc(file),
+                    ParentName = GetParentName(file)
+                });
+            }
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            Console.WriteLine($"Folder '{fileFullPath}' does not exists");
+            return [];
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Cannot get files from '{fileFullPath}' due to: {ex.Message}");
         }
 
         return files;
