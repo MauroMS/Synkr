@@ -1,6 +1,7 @@
 ﻿using CloudSynkr.Services.Interfaces;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
+using Google.Apis.Logging;
 using Google.Apis.Util.Store;
 
 namespace CloudSynkr.Services;
@@ -8,9 +9,15 @@ namespace CloudSynkr.Services;
 public class AuthService : IAuthService
 {
     private readonly List<string> _scopes = [DriveService.ScopeConstants.Drive];
-    private const string ClientInfoPath = @"credentials.json";
+    private readonly string clientInfoPath = Path.Combine(Directory.GetCurrentDirectory(), "credentials.json");
     private UserCredential? _userCredential;
+    private readonly ILogger _logger;
 
+    // public AuthService(ILogger logger)
+    // {
+    //     _logger = logger;
+    // }
+    
     public async Task<UserCredential?> Login(CancellationToken cancellationToken)
     {
         if (_userCredential != null)
@@ -20,8 +27,12 @@ public class AuthService : IAuthService
         GoogleClientSecrets? clientSecrets = null;
         try
         {
-            await using var stream = new FileStream(ClientInfoPath, FileMode.Open, FileAccess.Read);
+            await using var stream = new FileStream(clientInfoPath, FileMode.Open, FileAccess.Read);
             clientSecrets = await GoogleClientSecrets.FromStreamAsync(stream, cancellationToken);
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            Console.WriteLine($"File '{clientInfoPath}' does not exists");
         }
         catch (Exception ex)
         {

@@ -8,24 +8,35 @@ public class LocalStorageRepository : ILocalStorageRepository
 {
     public async Task<List<Folder>> GetLocalFolders(string folderPath)
     {
-        var foldersArray = Directory.GetDirectories(folderPath);
         var folders = new List<Folder>();
-
-        var folder = new Folder
+        try
         {
-            Name = GetName(folderPath),
-            Path = folderPath,
-            Files = GetLocalFiles(folderPath),
-            ParentId = GetParentName(folderPath)
-        };
+            var foldersArray = Directory.GetDirectories(folderPath);
 
-        foreach (var subFolderPath in foldersArray)
-        {
-            var subFolders = await GetLocalFolders(subFolderPath);
-            folder.Children.AddRange(subFolders);
+            var folder = new Folder
+            {
+                Name = GetName(folderPath),
+                Path = folderPath,
+                Files = GetLocalFiles(folderPath),
+                ParentId = GetParentName(folderPath)
+            };
+
+            foreach (var subFolderPath in foldersArray)
+            {
+                var subFolders = await GetLocalFolders(subFolderPath);
+                folder.Children.AddRange(subFolders);
+            }
+
+            folders.Add(folder);
         }
-
-        folders.Add(folder);
+        catch (DirectoryNotFoundException ex)
+        {
+            Console.WriteLine($"Folder '{folderPath}' does not exists.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.InnerException}");
+        }
 
         return folders;
     }
@@ -54,8 +65,8 @@ public class LocalStorageRepository : ILocalStorageRepository
     {
         var files = new List<File>();
         //TODO: DOES IT MAKE SENSE FOR THIS CODE TO BE HERE?? MAYBE IT SHOULD JUST RETURN NULL/EMPTY ARRAY
-        if (!Directory.Exists(fileFullPath))
-            CheckIfFolderExistsAndCreate(fileFullPath);
+        // if (!Directory.Exists(fileFullPath))
+        //     CheckIfFolderExistsAndCreate(fileFullPath);
 
         var filesPaths = Directory.GetFiles(fileFullPath);
         foreach (var file in filesPaths)
