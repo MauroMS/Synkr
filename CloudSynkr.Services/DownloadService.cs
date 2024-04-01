@@ -60,7 +60,7 @@ public class DownloadService : IDownloadService
         {
             //TODO: MOVE TO LOG
             Console.WriteLine($"Folder '{folderName}' doesn't exists on parent '{parentName}'");
-            return null;
+            return [];
         }
 
         var folderStructure = await _cloudStorageRepository.GetAllFoldersByParentId(credentials, folder.Id, folder.Name,
