@@ -4,17 +4,17 @@ using Microsoft.Extensions.Logging;
 
 namespace CloudSynkr.App;
 
-public class SyncWorker: IHostedService
+public class SyncWorker : IHostedService
 {
     private readonly ILogger<SyncWorker> _logger;
     private readonly ISyncService _syncService;
-    
+
     public SyncWorker(ILogger<SyncWorker> logger, ISyncService syncService)
     {
         _logger = logger;
         _syncService = syncService;
     }
-    
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Application Started");

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CloudSynkr.App": {
+      "commandName": "Project",
+      "commandLineArgs": "--email \"testemail@gmail.com\""
+    }
+  }
+}

@@ -13,48 +13,54 @@ public class DownloadService : IDownloadService
     private readonly ICloudStorageRepository _cloudStorageRepository;
     private readonly ILocalStorageRepository _localStorageRepository;
     private readonly ILogger<DownloadService> _logger;
-    
+    private readonly IAuthService _authService;
+
     public DownloadService(ICloudStorageRepository cloudStorageRepository,
-        ILocalStorageRepository localStorageRepository, ILogger<DownloadService> logger)
+        ILocalStorageRepository localStorageRepository, ILogger<DownloadService> logger, IAuthService authService)
     {
         _cloudStorageRepository = cloudStorageRepository;
         _localStorageRepository = localStorageRepository;
         _logger = logger;
+        _authService = authService;
     }
 
-    public async Task<bool> Download(UserCredential credentials, List<Mapping> mappings,
+    public async Task<bool> Download(List<Mapping> mappings,
         CancellationToken cancellationToken)
     {
+        var credentials = await _authService.Login(cancellationToken);
+
         foreach (var folderMap in mappings)
         {
             //TODO: ADD LOGIC TO MAP FILE TO RESULT... PROBABLY A DICTIONARY... ADD RETRY LOGIC?
-            var folderStructure = await GetFolderStructureToDownload(credentials,
-                folderMap.CloudFolderParentId, folderMap.CloudFolderParentName, folderMap.CloudFolder,
+            var folderStructure = await GetFolderStructureToDownload(folderMap.CloudFolderParentId,
+                folderMap.CloudFolderParentName, folderMap.CloudFolder,
                 cancellationToken);
 
-            await DownloadFilesFromFolders(credentials, folderStructure, folderMap.LocalFolder,
+            await DownloadFilesFromFolders(folderStructure, folderMap.LocalFolder,
                 cancellationToken);
         }
 
         return true;
     }
 
-    public async Task<bool> DownloadFilesFromFolders(UserCredential credentials, List<Folder> folderStructure,
+    public async Task<bool> DownloadFilesFromFolders(List<Folder> folderStructure,
         string localFolder, CancellationToken cancellationToken)
     {
         foreach (var folder in folderStructure)
         {
             var subFolder = Path.Combine(localFolder, folder.Name);
-            await DownloadFiles(credentials, folder.Files, subFolder);
-            await DownloadFilesFromFolders(credentials, folder.Children, subFolder, cancellationToken);
+            await DownloadFiles(folder.Files, subFolder, cancellationToken);
+            await DownloadFilesFromFolders(folder.Children, subFolder, cancellationToken);
         }
 
         return true;
     }
 
-    public async Task<List<Folder>> GetFolderStructureToDownload(UserCredential credentials, string parentId,
+    public async Task<List<Folder>> GetFolderStructureToDownload(string parentId,
         string parentName, string folderName, CancellationToken cancellationToken)
     {
+        var credentials = await _authService.Login(cancellationToken);
+        
         var folder =
             await _cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folderName,
                 cancellationToken);
@@ -71,9 +77,10 @@ public class DownloadService : IDownloadService
         return folderStructure;
     }
 
-    public async Task<bool> DownloadFiles(UserCredential credentials, List<File> files, string localFolder)
+    public async Task<bool> DownloadFiles(List<File> files, string localFolder, CancellationToken cancellationToken)
     {
         MemoryStream? fileStream;
+        var credentials = await _authService.Login(cancellationToken);
         var localFiles = _localStorageRepository.GetLocalFiles(localFolder);
         foreach (var cloudFile in files)
         {
