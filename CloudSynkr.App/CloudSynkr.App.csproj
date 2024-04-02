@@ -10,6 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Google.Apis.Drive.v3" Version="1.67.0.3309" />
+      <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.67.0.1869" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0-preview.2.24128.5" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0-preview.2.24128.5" />
       <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.0-preview.2.24128.5" />
@@ -41,8 +43,6 @@
       <None Remove="Backup5\**" />
       <None Remove="Backup 7\**" />
       <None Remove="Backup 8\**" />
-      <None Remove="CouldTree.json" />
-      <None Remove="LocalTree.json" />
     </ItemGroup>
 
     <ItemGroup>

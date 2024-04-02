@@ -1,40 +1,17 @@
 ﻿using CloudSynkr.App;
-using CloudSynkr.Models;
-using CloudSynkr.Repositories;
-using CloudSynkr.Repositories.Interfaces;
-using CloudSynkr.Services;
-using CloudSynkr.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
-var configuration = EnvironmentConfiguration.ConfigureAppSettings([]);
-builder.Services.Configure<SyncBackup>(configuration.GetSection("SyncBackup"));
-builder.Services.AddScoped<ISyncService, SyncService>();
-builder.Services.AddSingleton<IAuthService, AuthService>();
-builder.Services.AddTransient<IUploadService, UploadService>();
-builder.Services.AddTransient<IDownloadService, DownloadService>();
-builder.Services.AddTransient<ICloudStorageRepository, CloudStorageRepository>();
-builder.Services.AddTransient<ILocalStorageRepository, LocalStorageRepository>();
-// builder.Services.AddSerilog(config =>
-// {
-//     config.ReadFrom.Configuration(builder.Configuration)
-//         .WriteTo.Console();
-//     // .WriteTo.File()
-// });
-// builder.Logging.AddSerilog()
-using var host = builder.Build();
+var builder = Host.CreateApplicationBuilder(args);
+builder.ConfigureServices();
 
+var host = builder.Build();
 
-
-var app = host.Services.GetRequiredService<ISyncService>();
-
-//TODO: ADD WORKER TEMPLATE
+//Use this if you don't want the application to close, but atm is pointless as this is run/done app.
+//await host.RunAsync();
 
 await host.StartAsync();
 
-await app.Run(new CancellationToken());
+// await app.Run(new CancellationToken());
 // var auth = host.Services.GetRequiredService<IAuthService>();
 // var credentials = await auth.Login(new CancellationToken());
 // var upload = host.Services.GetRequiredService<ICloudStorageRepository>();
