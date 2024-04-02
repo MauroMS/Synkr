@@ -6,13 +6,13 @@ namespace CloudSynkr.Services.Interfaces;
 
 public interface IDownloadService
 {
-    Task<bool> Download(UserCredential credentials, List<Mapping> mappings, CancellationToken cancellationToken);
+    Task<bool> Download(List<Mapping> mappings, CancellationToken cancellationToken);
     
-    Task<List<Folder>> GetFolderStructureToDownload(UserCredential credentials, string parentId,
+    Task<List<Folder>> GetFolderStructureToDownload(string parentId,
         string parentName, string folderName, CancellationToken cancellationToken);
 
-    Task<bool> DownloadFilesFromFolders(UserCredential credentials, List<Folder> folderStructure, string localFolder,
+    Task<bool> DownloadFilesFromFolders(List<Folder> folderStructure, string localFolder,
         CancellationToken cancellationToken);
 
-    Task<bool> DownloadFiles(UserCredential credentials, List<File> files, string localFolder);
+    Task<bool> DownloadFiles(List<File> files, string localFolder, CancellationToken cancellationToken);
 }
