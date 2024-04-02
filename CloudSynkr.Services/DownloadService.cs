@@ -3,6 +3,7 @@ using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
 using CloudSynkr.Utils;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.Extensions.Logging;
 using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Services;
@@ -11,12 +12,14 @@ public class DownloadService : IDownloadService
 {
     private readonly ICloudStorageRepository _cloudStorageRepository;
     private readonly ILocalStorageRepository _localStorageRepository;
-
+    private readonly ILogger<DownloadService> _logger;
+    
     public DownloadService(ICloudStorageRepository cloudStorageRepository,
-        ILocalStorageRepository localStorageRepository)
+        ILocalStorageRepository localStorageRepository, ILogger<DownloadService> logger)
     {
         _cloudStorageRepository = cloudStorageRepository;
         _localStorageRepository = localStorageRepository;
+        _logger = logger;
     }
 
     public async Task<bool> Download(UserCredential credentials, List<Mapping> mappings,
@@ -58,8 +61,7 @@ public class DownloadService : IDownloadService
 
         if (folder == null)
         {
-            //TODO: MOVE TO LOG
-            Console.WriteLine($"Folder '{folderName}' doesn't exists on parent '{parentName}'");
+            _logger.LogInformation($"Folder '{folderName}' doesn't exists on parent '{parentName}'");
             return [];
         }
 
@@ -81,14 +83,14 @@ public class DownloadService : IDownloadService
             if (localFile != null &&
                 DateHelper.CheckIfDateIsNewer(localFile.LastModified, cloudFile.LastModified))
             {
-                Console.WriteLine(
+                _logger.LogInformation(
                     $"File {cloudFile.Name} was not downloaded as its version is older than the local version.");
                 continue;
             }
 
             fileStream = await _cloudStorageRepository.DownloadFile(cloudFile.Id, credentials);
             _localStorageRepository.SaveStreamAsFile(localFolder, fileStream, cloudFile.Name);
-            Console.WriteLine($"File {cloudFile.Name} was downloaded to {localFolder}");
+            _logger.LogInformation($"File {cloudFile.Name} was downloaded to {localFolder}");
         }
 
         return true;

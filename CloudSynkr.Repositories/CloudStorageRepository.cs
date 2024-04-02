@@ -6,16 +6,24 @@ using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Upload;
+using Microsoft.Extensions.Logging;
 using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Repositories;
 
 public class CloudStorageRepository : ICloudStorageRepository
 {
+    private readonly ILogger<CloudStorageRepository> _logger;
+
+    public CloudStorageRepository(ILogger<CloudStorageRepository> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task<Folder?> CreateFolder(UserCredential credentials, string folderName, string parentId,
         CancellationToken cancellationToken)
     {
-        Console.WriteLine("CreateFolder");
+        _logger.LogInformation("CreateFolder");
 
         using var driveService = new DriveService(new BaseClientService.Initializer()
             { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
@@ -36,8 +44,8 @@ public class CloudStorageRepository : ICloudStorageRepository
         request.Fields = "id, name, mimeType, modifiedTime, parents";
         var file = await request.ExecuteAsync(cancellationToken);
         // Prints the created folder id.
-        Console.WriteLine("Folder ID: " + file.Id);
-        Console.WriteLine("Folder Name: " + file.Name);
+        _logger.LogInformation("Folder ID: " + file.Id);
+        _logger.LogInformation("Folder Name: " + file.Name);
 
         return file?.MapFolder();
     }
@@ -159,22 +167,23 @@ public class CloudStorageRepository : ICloudStorageRepository
                     cancellationToken);
             folder.Children.AddRange(subFolders);
         }
+
         folders.Add(folder);
-        
+
         return folders;
     }
 
     public async Task<List<File>> GetAllFilesFromFolder(UserCredential credentials, string parentId,
         string parentName, CancellationToken cancellationToken)
     {
-        Console.WriteLine("GetAllFilesFromFolder");
+        _logger.LogInformation("GetAllFilesFromFolder");
         using var driveService = new DriveService(new BaseClientService.Initializer()
             { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
 
         var filesRequest = driveService.Files.List();
         filesRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
         filesRequest.Q = $"'{parentId}' in parents and mimeType != '{FileType.Folder}' and trashed = false";
-        
+
         var listFilesRequest = await filesRequest.ExecuteAsync(cancellationToken);
         var files = listFilesRequest.Files.Select(f => new File()
         {
@@ -185,7 +194,7 @@ public class CloudStorageRepository : ICloudStorageRepository
             MimeType = f.MimeType,
             ParentName = parentName
         }).ToList();
-        
+
         return files;
     }
 
@@ -212,17 +221,18 @@ public class CloudStorageRepository : ICloudStorageRepository
                     {
                         case DownloadStatus.Downloading:
                         {
-                            Console.WriteLine(progress.BytesDownloaded);
+                            _logger.LogInformation(progress.BytesDownloaded.ToString());
                             break;
                         }
                         case DownloadStatus.Completed:
                         {
-                            Console.WriteLine($"IDownloadProgress: {progress.Status} ({progress.BytesDownloaded})");
+                            _logger.LogInformation(
+                                $"IDownloadProgress: {progress.Status} ({progress.BytesDownloaded})");
                             break;
                         }
                         case DownloadStatus.Failed:
                         {
-                            Console.WriteLine("Download failed.");
+                            _logger.LogInformation("Download failed.");
                             break;
                         }
                     }
@@ -236,7 +246,7 @@ public class CloudStorageRepository : ICloudStorageRepository
             // TODO(developer) - handle error appropriately
             if (e is AggregateException)
             {
-                Console.WriteLine("Credential Not found");
+                _logger.LogError($"Credential Not found. Error: {e.Message}");
             }
             else
             {
@@ -267,7 +277,7 @@ public class CloudStorageRepository : ICloudStorageRepository
                 ]
             };
             FilesResource.CreateMediaUpload request;
-            
+
             using (var stream = new FileStream(localFilePath,
                        FileMode.Open))
             {
@@ -277,7 +287,7 @@ public class CloudStorageRepository : ICloudStorageRepository
             }
 
             var file = request.ResponseBody;
-            Console.WriteLine("File ID: " + file.Id);
+            _logger.LogInformation($"File ID: {file.Id}");
             return file.Id;
         }
         catch (Exception e)
@@ -286,10 +296,10 @@ public class CloudStorageRepository : ICloudStorageRepository
             {
                 // TODO(developer) - handle error appropriately
                 case AggregateException:
-                    Console.WriteLine("Credential Not found");
+                    _logger.LogError($"Credential Not found. Error: {e.Message}");
                     break;
                 case FileNotFoundException:
-                    Console.WriteLine("File not found");
+                    _logger.LogError($"File not found. Error: {e.Message}");
                     break;
                 default:
                     throw;
@@ -314,7 +324,7 @@ public class CloudStorageRepository : ICloudStorageRepository
                 Name = file.Name,
                 MimeType = file.MimeType
             };
-            
+
             await using (var uploadStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 var updateRequest = service.Files.Update(updateFileBody, file.Id, uploadStream, file.MimeType);
@@ -323,16 +333,16 @@ public class CloudStorageRepository : ICloudStorageRepository
                 switch (result.Status)
                 {
                     case UploadStatus.Starting:
-                        Console.WriteLine($"Start to Upload file: '{file.Name}' to '{file.ParentName}'");
+                        _logger.LogInformation($"Start to Upload file: '{file.Name}' to '{file.ParentName}'");
                         break;
                     case UploadStatus.Uploading:
-                        Console.WriteLine($"Uploading file: '{file.Name}' to '{file.ParentName}'");
+                        _logger.LogInformation($"Uploading file: '{file.Name}' to '{file.ParentName}'");
                         break;
                     case UploadStatus.Completed:
-                        Console.WriteLine($"File '{file.Name}' successfully uploaded to '{file.ParentName}'");
+                        _logger.LogInformation($"File '{file.Name}' successfully uploaded to '{file.ParentName}'");
                         break;
                     case UploadStatus.Failed:
-                        Console.WriteLine($"Error uploading file '{file.Name}': {result.Exception.Message}");
+                        _logger.LogInformation($"Error uploading file '{file.Name}': {result.Exception.Message}");
                         break;
                 }
             }
@@ -345,10 +355,10 @@ public class CloudStorageRepository : ICloudStorageRepository
             {
                 // TODO(developer) - handle error appropriately
                 case AggregateException:
-                    Console.WriteLine("Credential Not found");
+                    _logger.LogError($"Credential Not found. Error: {e.Message}");
                     break;
                 case FileNotFoundException:
-                    Console.WriteLine("File not found");
+                    _logger.LogError("File not found");
                     break;
                 default:
                     throw;
