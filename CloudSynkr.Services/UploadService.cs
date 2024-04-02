@@ -3,6 +3,7 @@ using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
 using CloudSynkr.Utils;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.Extensions.Logging;
 using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Services;
@@ -11,12 +12,13 @@ public class UploadService : IUploadService
 {
     private readonly ICloudStorageRepository _cloudStorageRepository;
     private readonly ILocalStorageRepository _localStorageRepository;
-
+    private readonly ILogger<UploadService> _logger;
     public UploadService(ICloudStorageRepository cloudStorageRepository,
-        ILocalStorageRepository localStorageRepository)
+        ILocalStorageRepository localStorageRepository, ILogger<UploadService> logger)
     {
         _cloudStorageRepository = cloudStorageRepository;
         _localStorageRepository = localStorageRepository;
+        _logger = logger;
     }
 
     public async Task<bool> Upload(UserCredential credentials, List<Mapping> mappings,
@@ -47,7 +49,7 @@ public class UploadService : IUploadService
 
             if (cloudFolder == null)
             {
-                Console.WriteLine($"Error creating folder '{folder.Name}' on path '{subFolder}'");
+                _logger.LogError($"Error creating folder '{folder.Name}' on path '{subFolder}'");
                 return false;
             }
 
@@ -83,7 +85,7 @@ public class UploadService : IUploadService
             }
             else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
             {
-                Console.WriteLine(
+                _logger.LogInformation(
                     $"File {cloudFile.Name} was not uploaded as its version is older than the cloud version.");
             }
             else

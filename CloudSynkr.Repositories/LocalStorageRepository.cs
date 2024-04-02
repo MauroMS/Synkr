@@ -1,14 +1,16 @@
 ﻿using CloudSynkr.Models;
 using CloudSynkr.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Repositories;
 
 public class LocalStorageRepository : ILocalStorageRepository
 {
-    public LocalStorageRepository()
+    private readonly ILogger<LocalStorageRepository> _logger;
+    public LocalStorageRepository(ILogger<LocalStorageRepository> logger)
     {
-        
+        _logger = logger;
     }
     
     public async Task<List<Folder>> GetLocalFolders(string folderPath)
@@ -36,11 +38,11 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (DirectoryNotFoundException ex)
         {
-            Console.WriteLine($"Folder '{folderPath}' does not exists.");
+            _logger.LogError($"Folder '{folderPath}' does not exists.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Exception: {ex.InnerException}");
+            _logger.LogError($"Exception: {ex.InnerException}");
         }
 
         return folders;
@@ -58,7 +60,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Folder '{filePath}' could not be created.");
+            _logger.LogError($"Folder '{filePath}' could not be created.");
             throw;
         }
     }
@@ -78,8 +80,8 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Could not save file '{fileName}'");
-            Console.WriteLine($"Error: {ex.Message}");
+            _logger.LogError($"Could not save file '{fileName}'");
+            _logger.LogError($"Error: {ex.Message}");
             throw;
         }
     }
@@ -103,12 +105,12 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (DirectoryNotFoundException ex)
         {
-            Console.WriteLine($"Folder '{fileFullPath}' does not exists");
+            _logger.LogError($"Folder '{fileFullPath}' does not exists");
             return [];
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Cannot get files from '{fileFullPath}' due to: {ex.Message}");
+            _logger.LogError($"Cannot get files from '{fileFullPath}' due to: {ex.Message}");
         }
 
         return files;
