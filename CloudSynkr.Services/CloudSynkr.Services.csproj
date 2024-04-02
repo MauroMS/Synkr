@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="Google.Apis.Auth" Version="1.67.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0-preview.2.24128.5" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0-preview.2.24128.5" />
       <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0-preview.2.24128.5" />
     </ItemGroup>
