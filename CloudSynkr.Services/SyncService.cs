@@ -37,26 +37,26 @@ public class SyncService : ISyncService
 
     private async Task<bool> Download(CancellationToken cancellationToken)
     {
-        _logger.LogInformation($@"Starting Download.");
+        _logger.LogInformation("Starting Download.");
         
         var mappedFolders = _syncBackupConfig.Value.Mappings
             .Where(m => m.ActionType is BackupActionType.DownloadOnly or BackupActionType.Sync).ToList();
         await _downloadService.Download(mappedFolders, cancellationToken);
 
-        _logger.LogInformation($@"Finished Download.");
+        _logger.LogInformation("Finished Download.");
 
         return true;
     }
 
     private async Task<bool> Upload(CancellationToken cancellationToken)
     {
-        _logger.LogInformation($@"Starting Upload.");
+        _logger.LogInformation("Starting Upload.");
 
         var mappedFolders = _syncBackupConfig.Value.Mappings
             .Where(m => m.ActionType is BackupActionType.UploadOnly or BackupActionType.Sync).ToList();
         await _uploadService.Upload(mappedFolders, cancellationToken);
 
-        _logger.LogInformation($@"Finished Upload.");
+        _logger.LogInformation("Finished Upload.");
 
         return true;
     }

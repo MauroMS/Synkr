@@ -60,14 +60,15 @@ public class DownloadService : IDownloadService
         string parentName, string folderName, CancellationToken cancellationToken)
     {
         var credentials = await _authService.Login(cancellationToken);
-        
+
         var folder =
             await _cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folderName,
                 cancellationToken);
 
         if (folder == null)
         {
-            _logger.LogInformation($"Folder '{folderName}' doesn't exists on parent '{parentName}'");
+            _logger.LogInformation("Folder '{folderName}' doesn't exists on parent '{parentName}'", folderName,
+                parentName);
             return [];
         }
 
@@ -84,20 +85,27 @@ public class DownloadService : IDownloadService
         var localFiles = _localStorageRepository.GetLocalFiles(localFolder);
         foreach (var cloudFile in files)
         {
-            //TODO: LOG/RETURN SOMETHING INDICATING FILES DOWNLOADED OR NOT
             var localFile = localFiles.FirstOrDefault(f => f.Name == cloudFile.Name);
 
             if (localFile != null &&
                 DateHelper.CheckIfDateIsNewer(localFile.LastModified, cloudFile.LastModified))
             {
                 _logger.LogInformation(
-                    $"File {cloudFile.Name} was not downloaded as its version is older than the local version.");
+                    "File {cloudFile.Name} was not downloaded as its version is older than the local version.",
+                    cloudFile.Name);
                 continue;
             }
 
             fileStream = await _cloudStorageRepository.DownloadFile(cloudFile.Id, credentials);
+            if (fileStream == null)
+            {
+                _logger.LogWarning("File {fileName} was not downloaded", cloudFile.Name);
+                return false;
+            }
+
             _localStorageRepository.SaveStreamAsFile(localFolder, fileStream, cloudFile.Name);
-            _logger.LogInformation($"File {cloudFile.Name} was downloaded to {localFolder}");
+            _logger.LogInformation("File {cloudFile.Name} was downloaded to {localFolder}", cloudFile.Name,
+                localFolder);
         }
 
         return true;

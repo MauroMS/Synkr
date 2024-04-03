@@ -37,11 +37,11 @@ public class AuthService : IAuthService
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogError($"File '{clientInfoPath}' does not exists");
+            _logger.LogError(ex, "File '{clientInfoPath}' does not exists", clientInfoPath);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            _logger.LogError(ex, "Login failed");
         }
 
         _userCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets?.Secrets, _scopes, "user",
