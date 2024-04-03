@@ -38,11 +38,11 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogError($"Folder '{folderPath}' does not exists.");
+            _logger.LogError(ex, "Folder '{folderPath}' does not exists.", folderPath);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Exception: {ex.InnerException}");
+            _logger.LogError(ex, "Could not get local folders.");
         }
 
         return folders;
@@ -60,7 +60,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Folder '{filePath}' could not be created.");
+            _logger.LogError(ex, "Folder '{filePath}' could not be created.", filePath);
             throw;
         }
     }
@@ -80,9 +80,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Could not save file '{fileName}'");
-            _logger.LogError($"Error: {ex.Message}");
-            throw;
+            _logger.LogError(ex, $"Could not save file '{fileName}'", fileName);
         }
     }
 
@@ -105,12 +103,12 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogError($"Folder '{fileFullPath}' does not exists");
+            _logger.LogError(ex, "Folder '{fileFullPath}' does not exists", fileFullPath);
             return [];
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Cannot get files from '{fileFullPath}' due to: {ex.Message}");
+            _logger.LogError(ex, "Cannot get files from '{fileFullPath}'", fileFullPath);
         }
 
         return files;
@@ -121,7 +119,6 @@ public class LocalStorageRepository : ILocalStorageRepository
         return fullPath.Split(@"\").Last();
     }
 
-    //TODO: POPULATE ParentId with path
     private string GetParentName(string fullPath)
     {
         var paths = fullPath.Split(@"\");
