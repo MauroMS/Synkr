@@ -53,7 +53,8 @@ public class UploadService : IUploadService
 
             if (cloudFolder == null)
             {
-                _logger.LogError($"Error creating folder '{folder.Name}' on path '{subFolder}'");
+                _logger.LogError("Error retrieving/creating folder '{folder.Name}' on path '{subFolder}'", folder.Name,
+                    subFolder);
                 return false;
             }
 
@@ -91,7 +92,8 @@ public class UploadService : IUploadService
             else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
             {
                 _logger.LogInformation(
-                    $"File {cloudFile.Name} was not uploaded as its version is older than the cloud version.");
+                    "File {cloudFile.Name} was not uploaded as its version is older than the cloud version.",
+                    cloudFile.Name);
             }
             else
             {
