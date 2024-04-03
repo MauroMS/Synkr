@@ -91,7 +91,7 @@ public class DownloadService : IDownloadService
                 DateHelper.CheckIfDateIsNewer(localFile.LastModified, cloudFile.LastModified))
             {
                 _logger.LogInformation(
-                    "File {cloudFile.Name} was not downloaded as its version is older than the local version.",
+                    "File {cloudFile.Name} was not downloaded as its version is older than the local version",
                     cloudFile.Name);
                 continue;
             }
