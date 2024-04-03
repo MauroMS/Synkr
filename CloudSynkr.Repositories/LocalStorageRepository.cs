@@ -38,11 +38,11 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogError(ex, "Folder '{folderPath}' does not exists.", folderPath);
+            _logger.LogError(ex, "Folder '{folderPath}' does not exists", folderPath);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Could not get local folders.");
+            _logger.LogError(ex, "Could not get local folders");
         }
 
         return folders;
@@ -60,7 +60,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Folder '{filePath}' could not be created.", filePath);
+            _logger.LogError(ex, "Folder '{filePath}' could not be created", filePath);
             throw;
         }
     }

@@ -197,7 +197,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         return files;
     }
 
-    public async Task<MemoryStream?> DownloadFile(string fileId, UserCredential credentials)
+    public async Task<MemoryStream?> DownloadFile(string? fileId, UserCredential credentials)
     {
         try
         {
@@ -233,7 +233,7 @@ public class CloudStorageRepository : ICloudStorageRepository
                         }
                         case DownloadStatus.Failed:
                         {
-                            _logger.LogWarning("Download failed for file {fileId}.", fileId);
+                            _logger.LogWarning("Download failed for file {fileId}", fileId);
                             break;
                         }
                     }
@@ -259,7 +259,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         return null;
     }
 
-    public string CreateFile(UserCredential credentials, string localFilePath, string parentId, string name,
+    public string? CreateFile(UserCredential credentials, string localFilePath, string parentId, string name,
         string mimeType)
     {
         try
@@ -311,7 +311,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         return null;
     }
 
-    public async Task<string> UpdateFile(UserCredential credentials, string filePath, File file)
+    public async Task<string?> UpdateFile(UserCredential credentials, string filePath, File file)
     {
         try
         {
@@ -360,7 +360,7 @@ public class CloudStorageRepository : ICloudStorageRepository
             {
                 // TODO(developer) - handle error appropriately
                 case AggregateException:
-                    _logger.LogError(e, "Credentials not found.");
+                    _logger.LogError(e, "Credentials not found");
                     break;
                 case FileNotFoundException:
                     _logger.LogError(e, "File not found");

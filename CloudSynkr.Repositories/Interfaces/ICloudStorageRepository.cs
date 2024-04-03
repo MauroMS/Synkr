@@ -21,9 +21,9 @@ public interface ICloudStorageRepository
     Task<List<File>> GetAllFilesFromFolder(UserCredential credentials, string parentId,
         string parentName, CancellationToken cancellationToken);
 
-    Task<MemoryStream?> DownloadFile(string fileId, UserCredential credentials);
+    Task<MemoryStream?> DownloadFile(string? fileId, UserCredential credentials);
 
-    string CreateFile(UserCredential credentials, string localFilePath, string parentId, string name, string mimeType);
+    string? CreateFile(UserCredential credentials, string localFilePath, string parentId, string name, string mimeType);
 
-    Task<string> UpdateFile(UserCredential credentials, string filePath, File file);
+    Task<string?> UpdateFile(UserCredential credentials, string filePath, File file);
 }

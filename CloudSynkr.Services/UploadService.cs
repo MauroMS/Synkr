@@ -92,7 +92,7 @@ public class UploadService : IUploadService
             else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
             {
                 _logger.LogInformation(
-                    "File {cloudFile.Name} was not uploaded as its version is older than the cloud version.",
+                    "File {cloudFile.Name} was not uploaded as its version is older than the cloud version",
                     cloudFile.Name);
             }
             else
