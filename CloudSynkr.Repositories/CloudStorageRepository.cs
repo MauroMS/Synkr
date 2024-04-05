@@ -62,7 +62,6 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
         return folder?.MapFolder();
     }
 
-
     public async Task<Folder?> GetBasicFolderInfoById(UserCredential credentials, string folderId,
         CancellationToken cancellationToken)
     {
@@ -260,6 +259,7 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
                     logger.LogError(e, Constants.Exceptions.FileNotFound);
                     break;
                 default:
+                    logger.LogError(e, Constants.Exceptions.FailedToUploadFilesTo, parentId);
                     throw;
             }
         }
@@ -325,5 +325,40 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
         }
 
         return null;
+    }
+    
+    public async Task<List<Folder>> GetAllFoldersPlainList(UserCredential credentials, string parentId,
+        string parentName, CancellationToken cancellationToken)
+    {
+        //TODO: MAYBE SPEED CAN BE IMPROVED BY LOADING ALL FOLDERS WHEN IT FIRST RUN INSTEAD OF NAVIGATING LEVELS AS IT'S NOW.
+        var folders = new List<Folder>();
+        
+        using var driveService = new DriveService(new BaseClientService.Initializer()
+            { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
+
+        //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
+        var foldersRequest = driveService.Files.List();
+        foldersRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
+        foldersRequest.Q = $"trashed=false and mimeType = '{FileType.Folder}'";
+        var listFoldersRequest = await foldersRequest.ExecuteAsync(cancellationToken);
+        //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
+
+        foreach (var foldr in listFoldersRequest.Files)
+        {
+            folders.Add(new Folder()
+            {
+                Name = foldr.Name,
+                Id = foldr.Id,
+                ParentId = foldr.Parents?[0] ?? "",
+                Type = FileType.Folder,
+            });
+        }
+
+        foreach (var fold in folders)
+        {
+            fold.ParentName = folders.FirstOrDefault(f => f.Id == fold.ParentId)?.Name ?? "";
+        }
+
+        return folders;
     }
 }
