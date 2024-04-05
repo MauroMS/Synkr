@@ -21,11 +21,10 @@ public class DownloadService(
         {
             if (folderMap.FilesToSync.Count > 0)
             {
-                await DownloadFilesFromFolder(folderMap, cancellationToken);
+                await DownloadSpecificFilesFromFolder(folderMap, cancellationToken);
                 continue;
             }
 
-            //TODO: ADD LOGIC TO MAP FILE TO RESULT... PROBABLY A DICTIONARY... ADD RETRY LOGIC?
             var folderStructure = await GetFolderStructureToDownload(folderMap.CloudFolderParentId,
                 folderMap.CloudFolderParentName, folderMap.CloudFolder,
                 cancellationToken);
@@ -37,11 +36,12 @@ public class DownloadService(
         return true;
     }
 
-    public async Task<bool> DownloadFilesFromFolder(Mapping folderMap, CancellationToken cancellationToken)
+    public async Task<bool> DownloadSpecificFilesFromFolder(Mapping folderMap, CancellationToken cancellationToken)
     {
         try
         {
             var credentials = await authService.Login(cancellationToken);
+
             var folder = await cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials,
                 folderMap.CloudFolderParentId, folderMap.CloudFolder, cancellationToken);
             var allFiles =
@@ -49,7 +49,6 @@ public class DownloadService(
                     cancellationToken);
             folder.Files = allFiles.Where(f => folderMap.FilesToSync.Contains(f.Name)).ToList();
 
-            // var subFolder = Path.Combine(localFolder, folderMap.LocalFolder);
             await DownloadFiles(folder.Files, folderMap.LocalFolder, cancellationToken);
         }
         catch (Exception ex)
