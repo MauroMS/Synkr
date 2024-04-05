@@ -1,6 +1,6 @@
 ﻿namespace CloudSynkr.Models;
 
-public abstract class Mapping
+public record Mapping
 {
     public string CloudFolderParentId { get; set; } = "";
     public string CloudFolderParentName { get; set; } = "";

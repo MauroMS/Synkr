@@ -26,10 +26,10 @@ public static class EnvironmentConfiguration
 
     public static IHostApplicationBuilder ConfigureServices(this IHostApplicationBuilder builder)
     {
-        var configuration = EnvironmentConfiguration.ConfigureAppSettings([]);
-
-        builder.Services.AddSerilog(lc => lc.ReadFrom.Configuration(builder.Configuration));
+        var configuration = ConfigureAppSettings([]);
         builder.Services.Configure<SyncBackup>(configuration.GetSection("SyncBackup"));
+        builder.Services.AddSerilog(lc => lc.ReadFrom.Configuration(builder.Configuration));
+
         builder.Services.AddScoped<ISyncService, SyncService>();
         builder.Services.AddSingleton<IAuthService, AuthService>();
         builder.Services.AddTransient<IUploadService, UploadService>();

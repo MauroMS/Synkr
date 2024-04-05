@@ -5,14 +5,8 @@ using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Repositories;
 
-public class LocalStorageRepository : ILocalStorageRepository
+public class LocalStorageRepository(ILogger<LocalStorageRepository> logger) : ILocalStorageRepository
 {
-    private readonly ILogger<LocalStorageRepository> _logger;
-    public LocalStorageRepository(ILogger<LocalStorageRepository> logger)
-    {
-        _logger = logger;
-    }
-    
     public async Task<List<Folder>> GetLocalFolders(string folderPath)
     {
         var folders = new List<Folder>();
@@ -36,13 +30,13 @@ public class LocalStorageRepository : ILocalStorageRepository
 
             folders.Add(folder);
         }
-        catch (DirectoryNotFoundException ex)
+        catch (DirectoryNotFoundException)
         {
-            _logger.LogError(ex, "Folder '{folderPath}' does not exists", folderPath);
+            logger.LogWarning(Constants.Warning.FolderDoesntExists, folderPath);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Could not get local folders");
+            logger.LogError(ex, Constants.Exceptions.ErrorGettingLocalFolders);
         }
 
         return folders;
@@ -60,7 +54,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Folder '{filePath}' could not be created", filePath);
+            logger.LogError(ex, Constants.Exceptions.FailedToCreateFolder, filePath);
             throw;
         }
     }
@@ -80,7 +74,7 @@ public class LocalStorageRepository : ILocalStorageRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Could not save file '{fileName}'", fileName);
+            logger.LogError(ex, Constants.Exceptions.FailedToSaveFileToFolder, fileName, path);
         }
     }
 
@@ -101,14 +95,14 @@ public class LocalStorageRepository : ILocalStorageRepository
                 });
             }
         }
-        catch (DirectoryNotFoundException ex)
+        catch (DirectoryNotFoundException)
         {
-            _logger.LogError(ex, "Folder '{fileFullPath}' does not exists", fileFullPath);
+            logger.LogWarning(Constants.Warning.FolderDoesntExists, fileFullPath);
             return [];
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot get files from '{fileFullPath}'", fileFullPath);
+            logger.LogError(ex, Constants.Exceptions.FailedToRetrieveFilesFrom, fileFullPath);
         }
 
         return files;

@@ -8,22 +8,13 @@ using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Services;
 
-public class UploadService : IUploadService
+public class UploadService(
+    ICloudStorageRepository cloudStorageRepository,
+    ILocalStorageRepository localStorageRepository,
+    ILogger<UploadService> logger,
+    IAuthService authService)
+    : IUploadService
 {
-    private readonly ICloudStorageRepository _cloudStorageRepository;
-    private readonly ILocalStorageRepository _localStorageRepository;
-    private readonly ILogger<UploadService> _logger;
-    private readonly IAuthService _authService;
-
-    public UploadService(ICloudStorageRepository cloudStorageRepository,
-        ILocalStorageRepository localStorageRepository, ILogger<UploadService> logger, IAuthService authService)
-    {
-        _cloudStorageRepository = cloudStorageRepository;
-        _localStorageRepository = localStorageRepository;
-        _logger = logger;
-        _authService = authService;
-    }
-
     public async Task<bool> Upload(List<Mapping> mappings,
         CancellationToken cancellationToken)
     {
@@ -41,19 +32,19 @@ public class UploadService : IUploadService
     public async Task<bool> UploadFilesToFolders(List<Folder> folderStructure,
         string cloudFolderPath, string parentId, CancellationToken cancellationToken)
     {
-        var credentials = await _authService.Login(cancellationToken);
+        var credentials = await authService.Login(cancellationToken);
         foreach (var folder in folderStructure)
         {
             var subFolder = Path.Combine(cloudFolderPath, folder.Name);
 
             var cloudFolder =
-                await _cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folder.Name,
+                await cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folder.Name,
                     cancellationToken) ??
-                await _cloudStorageRepository.CreateFolder(credentials, folder.Name, parentId, cancellationToken);
+                await cloudStorageRepository.CreateFolder(credentials, folder.Name, parentId, cancellationToken);
 
             if (cloudFolder == null)
             {
-                _logger.LogError("Error retrieving/creating folder '{folder.Name}' on path '{subFolder}'", folder.Name,
+                logger.LogError(Constants.Exceptions.FailedToRetrieveCreateFolderOn, folder.Name,
                     subFolder);
                 return false;
             }
@@ -67,18 +58,18 @@ public class UploadService : IUploadService
 
     public async Task<List<Folder>> GetFolderStructureToUpload(string folderPath)
     {
-        return await _localStorageRepository.GetLocalFolders(folderPath);
+        return await localStorageRepository.GetLocalFolders(folderPath);
     }
 
     public async Task<bool> UploadFiles(List<File> files, string parentId,
         CancellationToken cancellationToken)
     {
-        var credentials = await _authService.Login(cancellationToken);
+        var credentials = await authService.Login(cancellationToken);
         if (files.Count == 0)
             return false;
 
         var cloudFiles =
-            await _cloudStorageRepository.GetAllFilesFromFolder(credentials, parentId, files[0].ParentName,
+            await cloudStorageRepository.GetAllFilesFromFolder(credentials, parentId, files[0].ParentName,
                 cancellationToken);
         foreach (var localFile in files)
         {
@@ -87,19 +78,17 @@ public class UploadService : IUploadService
 
             if (cloudFile == null)
             {
-                _cloudStorageRepository.CreateFile(credentials, localFile.Path, parentId, localFile.Name, mimeType);
+                cloudStorageRepository.CreateFile(credentials, localFile.Path, parentId, localFile.Name, mimeType);
             }
             else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
             {
-                _logger.LogInformation(
-                    "File {cloudFile.Name} was not uploaded as its version is older than the cloud version",
-                    cloudFile.Name);
+                logger.LogInformation(Constants.Information.LocalFileIsOlderThanCloudFile, cloudFile.Name);
             }
             else
             {
                 localFile.Id = cloudFile.Id;
                 localFile.ParentId = cloudFile.ParentId;
-                await _cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
+                await cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using CloudSynkr.Models.Exceptions;
+﻿using CloudSynkr.Models;
+using CloudSynkr.Models.Exceptions;
 using CloudSynkr.Services.Interfaces;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
@@ -18,7 +19,7 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         var clientInfoPath = "";
         try
         {
-            logger.LogInformation("Started Login");
+            logger.LogInformation(Constants.Information.StartedLogin);
 
             clientInfoPath = GetClientInfoPath();
 
@@ -29,19 +30,19 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
             var clientSecrets = await GoogleClientSecrets.FromStreamAsync(stream, cancellationToken);
 
             _userCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets?.Secrets, _scopes, "user",
-                cancellationToken, new FileDataStore("Synkr"));
+                cancellationToken, new FileDataStore(Constants.Information.Synkr));
 
             if (_userCredential == null)
-                throw new LoginException("Unable to retrieve credentials");
+                throw new LoginException(Constants.Exceptions.UnableToRetrieveCredentials);
         }
         catch (DirectoryNotFoundException ex)
         {
-            logger.LogError(ex, "File '{clientInfoPath}' does not exists", clientInfoPath);
+            logger.LogError(ex, Constants.Exceptions.FileDoesntExists, clientInfoPath);
             throw new LoginException();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Login failed");
+            logger.LogError(ex, Constants.Exceptions.LoginFailed);
             throw new LoginException();
         }
 
