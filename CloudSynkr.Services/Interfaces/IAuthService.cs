@@ -4,5 +4,5 @@ namespace CloudSynkr.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<UserCredential?> Login(CancellationToken cancellationToken);
+    Task<UserCredential> Login(CancellationToken cancellationToken);
 }

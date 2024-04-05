@@ -11,19 +11,12 @@ using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Repositories;
 
-public class CloudStorageRepository : ICloudStorageRepository
+public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : ICloudStorageRepository
 {
-    private readonly ILogger<CloudStorageRepository> _logger;
-
-    public CloudStorageRepository(ILogger<CloudStorageRepository> logger)
-    {
-        _logger = logger;
-    }
-
     public async Task<Folder?> CreateFolder(UserCredential credentials, string folderName, string parentId,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Creating Folder: {folderName}", folderName);
+        logger.LogInformation(Constants.Information.CreatingFolder, folderName);
 
         using var driveService = new DriveService(new BaseClientService.Initializer()
             { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
@@ -44,8 +37,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         request.Fields = "id, name, mimeType, modifiedTime, parents";
         var file = await request.ExecuteAsync(cancellationToken);
         // Prints the created folder id.
-        _logger.LogInformation("Created Folder ID: {fileId}", file.Id);
-        _logger.LogInformation("Created Folder Name: {fileName}", file.Name);
+        logger.LogInformation(Constants.Information.CreatedFolderName, file.Name, file.Id);
 
         return file?.MapFolder();
     }
@@ -70,41 +62,6 @@ public class CloudStorageRepository : ICloudStorageRepository
         return folder?.MapFolder();
     }
 
-    public async Task<Folder?> GetBasicFolderInfoByNameAndParentName(UserCredential credentials, string parentName,
-        string folderName,
-        CancellationToken cancellationToken)
-    {
-        using var driveService = new DriveService(new BaseClientService.Initializer()
-            { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
-
-        //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
-        var foldersRequest = driveService.Files.List();
-        foldersRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
-        foldersRequest.Q =
-            $"name = '{folderName}' and mimeType = '{FileType.Folder}' and trashed=false";
-        var listFoldersRequest = await foldersRequest.ExecuteAsync(cancellationToken);
-        //TODO: MOVE THIS BLOCK TO ANOTHER METHOD
-
-        var folders = listFoldersRequest.Files;
-        Google.Apis.Drive.v3.Data.File? folder = null;
-        if (folders.Count == 1)
-        {
-            folder = folders.FirstOrDefault();
-        }
-        else
-        {
-            foreach (var fold in listFoldersRequest.Files)
-            {
-                var folderInfo =
-                    await GetBasicFolderInfoByNameAndParentId(credentials, fold.Parents[0], fold.Name,
-                        cancellationToken);
-                if (folderInfo != null && folderInfo.Name.Equals(parentName))
-                    return folderInfo;
-            }
-        }
-
-        return folder?.MapFolder();
-    }
 
     public async Task<Folder?> GetBasicFolderInfoById(UserCredential credentials, string folderId,
         CancellationToken cancellationToken)
@@ -172,16 +129,16 @@ public class CloudStorageRepository : ICloudStorageRepository
         return folders;
     }
 
-    public async Task<List<File>> GetAllFilesFromFolder(UserCredential credentials, string parentId,
-        string parentName, CancellationToken cancellationToken)
+    public async Task<List<File>> GetAllFilesFromFolder(UserCredential credentials, string folderId,
+        string folderName, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Get All Files From Folder: {folderName}", parentName);
+        logger.LogInformation(Constants.Information.GetAllFilesFromFolder, folderName);
         using var driveService = new DriveService(new BaseClientService.Initializer()
-            { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
+            { HttpClientInitializer = credentials, ApplicationName = Constants.Information.Synkr });
 
         var filesRequest = driveService.Files.List();
         filesRequest.Fields = "files(id, name, mimeType, modifiedTime, parents)";
-        filesRequest.Q = $"'{parentId}' in parents and mimeType != '{FileType.Folder}' and trashed = false";
+        filesRequest.Q = $"'{folderId}' in parents and mimeType != '{FileType.Folder}' and trashed = false";
 
         var listFilesRequest = await filesRequest.ExecuteAsync(cancellationToken);
         var files = listFilesRequest.Files.Select(f => new File()
@@ -191,13 +148,13 @@ public class CloudStorageRepository : ICloudStorageRepository
             ParentId = f.Parents[0],
             LastModified = f.ModifiedTimeDateTimeOffset,
             MimeType = f.MimeType,
-            ParentName = parentName
+            ParentName = folderName
         }).ToList();
 
         return files;
     }
 
-    public async Task<MemoryStream?> DownloadFile(string fileId, UserCredential credentials)
+    public async Task<MemoryStream?> DownloadFile(string? fileId, UserCredential credentials)
     {
         try
         {
@@ -220,20 +177,19 @@ public class CloudStorageRepository : ICloudStorageRepository
                     {
                         case DownloadStatus.Downloading:
                         {
-                            _logger.LogDebug("Downloading file id: {fileId} -- progress: {progress}", fileId,
+                            logger.LogDebug(Constants.Information.DownloadingFileProgress, fileId,
                                 progress.BytesDownloaded.ToString());
                             break;
                         }
                         case DownloadStatus.Completed:
                         {
-                            _logger.LogInformation(
-                                "Download File: {fileId} -- Progress: {progress} - Bytes Downloaded: {bytes}", fileId,
-                                progress.Status, progress.BytesDownloaded);
+                            logger.LogInformation(Constants.Information.DownloadedFileProgress, fileId, progress.Status,
+                                progress.BytesDownloaded);
                             break;
                         }
                         case DownloadStatus.Failed:
                         {
-                            _logger.LogWarning("Download failed for file {fileId}.", fileId);
+                            logger.LogWarning(Constants.Warning.FailedToDownloadFile, fileId);
                             break;
                         }
                     }
@@ -247,11 +203,11 @@ public class CloudStorageRepository : ICloudStorageRepository
             // TODO(developer) - handle error appropriately
             if (e is AggregateException)
             {
-                _logger.LogError(e, "Credential Not found");
+                logger.LogError(e, Constants.Exceptions.CredentialsNotFound);
             }
             else
             {
-                _logger.LogError(e, "Filed to download file {fileid}", fileId);
+                logger.LogError(e, Constants.Warning.FailedToDownloadFile, fileId);
                 return null;
             }
         }
@@ -259,7 +215,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         return null;
     }
 
-    public string CreateFile(UserCredential credentials, string localFilePath, string parentId, string name,
+    public string? CreateFile(UserCredential credentials, string localFilePath, string parentId, string name,
         string mimeType)
     {
         try
@@ -289,7 +245,7 @@ public class CloudStorageRepository : ICloudStorageRepository
             }
 
             var file = request.ResponseBody;
-            _logger.LogInformation("Created File Name: {fileName} ID: {fileId}", file.Name, file.Id);
+            logger.LogInformation(Constants.Information.CreatedFileNameId, file.Name, file.Id);
             return file.Id;
         }
         catch (Exception e)
@@ -298,10 +254,10 @@ public class CloudStorageRepository : ICloudStorageRepository
             {
                 // TODO(developer) - handle error appropriately
                 case AggregateException:
-                    _logger.LogError(e, "Credentials Not found");
+                    logger.LogError(e, Constants.Exceptions.CredentialsNotFound);
                     break;
                 case FileNotFoundException:
-                    _logger.LogError(e, "File not found");
+                    logger.LogError(e, Constants.Exceptions.FileNotFound);
                     break;
                 default:
                     throw;
@@ -311,7 +267,7 @@ public class CloudStorageRepository : ICloudStorageRepository
         return null;
     }
 
-    public async Task<string> UpdateFile(UserCredential credentials, string filePath, File file)
+    public async Task<string?> UpdateFile(UserCredential credentials, string filePath, File file)
     {
         try
         {
@@ -335,19 +291,17 @@ public class CloudStorageRepository : ICloudStorageRepository
                 switch (result.Status)
                 {
                     case UploadStatus.Starting:
-                        _logger.LogInformation("Start to Upload file: '{file.Name}' to '{file.ParentName}'", file.Name,
+                        logger.LogInformation(Constants.Information.StartedToUploadFileProgress, file.Name,
                             file.ParentName);
                         break;
                     case UploadStatus.Uploading:
-                        _logger.LogInformation("Uploading file: '{file.Name}' to '{file.ParentName}'", file.Name,
-                            file.ParentName);
+                        logger.LogInformation(Constants.Information.UploadingFileProgress, file.Name, file.ParentName);
                         break;
                     case UploadStatus.Completed:
-                        _logger.LogInformation("File '{file.Name}' successfully uploaded to '{file.ParentName}'",
-                            file.Name, file.ParentName);
+                        logger.LogInformation(Constants.Information.UploadedFileProgress, file.Name, file.ParentName);
                         break;
                     case UploadStatus.Failed:
-                        _logger.LogWarning(result.Exception, "Error uploading file '{file.Name}'", file.Name);
+                        logger.LogWarning(result.Exception, Constants.Warning.UploadFailedProgress, file.Name);
                         break;
                 }
             }
@@ -360,10 +314,10 @@ public class CloudStorageRepository : ICloudStorageRepository
             {
                 // TODO(developer) - handle error appropriately
                 case AggregateException:
-                    _logger.LogError(e, "Credentials not found.");
+                    logger.LogError(e, Constants.Exceptions.CredentialsNotFound);
                     break;
                 case FileNotFoundException:
-                    _logger.LogError(e, "File not found");
+                    logger.LogError(e, Constants.Exceptions.FileNotFound);
                     break;
                 default:
                     throw;
