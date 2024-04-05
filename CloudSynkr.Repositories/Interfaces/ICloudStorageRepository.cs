@@ -26,4 +26,7 @@ public interface ICloudStorageRepository
     string? CreateFile(UserCredential credentials, string localFilePath, string parentId, string name, string mimeType);
 
     Task<string?> UpdateFile(UserCredential credentials, string filePath, File file);
+
+    Task<List<Folder>> GetAllFoldersPlainList(UserCredential credentials, string parentId, string parentName,
+        CancellationToken cancellationToken);
 }

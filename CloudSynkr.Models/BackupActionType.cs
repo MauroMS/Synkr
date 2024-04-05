@@ -2,7 +2,9 @@
 
 public enum BackupActionType
 {
+    None,
     Sync,
     DownloadOnly,
     UploadOnly,
+    
 }

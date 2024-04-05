@@ -9,4 +9,6 @@ public class Folder
     public string Type { get; set; } = "";
     public List<Folder> Children { get; set; } = [];
     public List<File> Files { get; set; } = [];
+    //TODO: TBC - TO BE REMOVED IF CloudStorageRepository -> GetAllFoldersPlainList is deleted.
+    public string ParentName { get; set; } = "";
 }

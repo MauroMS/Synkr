@@ -12,12 +12,14 @@ public static class Constants
         public const string FailedToSaveFileToFolder = "Failed to save file '{fileName}' to '{filePath}'";
         public const string FailedToRetrieveFilesFrom = "Failed to retrieve files from '{fileFullPath}'";
         public const string FailedToDownloadFilesFrom = "Failed to download files from '{fileFullPath}'";
+        public const string FailedToUploadFilesTo = "Failed to upload files to '{cloudPath}'";
+        
         public const string FileDoesntExists = "File '{clientInfoPath}' does not exists";
         public const string LoginFailed = "Login failed";
         public const string UnableToRetrieveCredentials = "Unable to retrieve credentials";
 
         public const string FailedToRetrieveCreateFolderOn =
-            "Error retrieving/creating folder '{folder.Name}' on path '{subFolder}'";
+            "Error retrieving/creating folder '{folderName}' on path '{path}'";
     }
 
     public static class Information
