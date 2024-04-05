@@ -108,20 +108,27 @@ public class UploadService(
         {
             var mimeType = MimeTypeMapHelper.GetMimeType(localFile.Name);
             var cloudFile = cloudFiles.FirstOrDefault(f => f.Name == localFile.Name);
-
-            if (cloudFile == null)
+            
+            try
             {
-                cloudStorageRepository.CreateFile(credentials, localFile.Path, folderId, localFile.Name, mimeType);
+                if (cloudFile == null)
+                {
+                    cloudStorageRepository.CreateFile(credentials, localFile.Path, folderId, localFile.Name, mimeType);
+                }
+                else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
+                {
+                    logger.LogInformation(Constants.Information.LocalFileIsOlderThanCloudFile, cloudFile.Name);
+                }
+                else
+                {
+                    localFile.Id = cloudFile.Id;
+                    localFile.ParentId = cloudFile.ParentId;
+                    await cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
+                }
             }
-            else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
+            catch (Exception ex)
             {
-                logger.LogInformation(Constants.Information.LocalFileIsOlderThanCloudFile, cloudFile.Name);
-            }
-            else
-            {
-                localFile.Id = cloudFile.Id;
-                localFile.ParentId = cloudFile.ParentId;
-                await cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
+                logger.LogError(ex, Constants.Exceptions.FailedToUploadFilesTo, cloudFile?.ParentName ?? localFile.Path);
             }
         }
 
