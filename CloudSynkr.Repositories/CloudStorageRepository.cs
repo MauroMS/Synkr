@@ -259,6 +259,7 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
                     logger.LogError(e, Constants.Exceptions.FileNotFound);
                     break;
                 default:
+                    logger.LogError(e, Constants.Exceptions.FailedToUploadFilesTo, parentId);
                     throw;
             }
         }
