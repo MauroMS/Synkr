@@ -18,8 +18,8 @@ public interface ICloudStorageRepository
     Task<List<Folder>> GetAllFoldersByParentId(UserCredential credentials, string folderId,
         string folderName, string parentId, string fullPath, CancellationToken cancellationToken);
 
-    Task<List<File>> GetAllFilesFromFolder(UserCredential credentials, string parentId,
-        string parentName, CancellationToken cancellationToken);
+    Task<List<File>> GetAllFilesFromFolder(UserCredential credentials, string folderId,
+        string folderName, CancellationToken cancellationToken);
 
     Task<MemoryStream?> DownloadFile(string? fileId, UserCredential credentials);
 

@@ -2,35 +2,29 @@
 using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
 using CloudSynkr.Utils;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 using File = CloudSynkr.Models.File;
 
 namespace CloudSynkr.Services;
 
-public class DownloadService : IDownloadService
+public class DownloadService(
+    ICloudStorageRepository cloudStorageRepository,
+    ILocalStorageRepository localStorageRepository,
+    ILogger<DownloadService> logger,
+    IAuthService authService)
+    : IDownloadService
 {
-    private readonly ICloudStorageRepository _cloudStorageRepository;
-    private readonly ILocalStorageRepository _localStorageRepository;
-    private readonly ILogger<DownloadService> _logger;
-    private readonly IAuthService _authService;
-
-    public DownloadService(ICloudStorageRepository cloudStorageRepository,
-        ILocalStorageRepository localStorageRepository, ILogger<DownloadService> logger, IAuthService authService)
-    {
-        _cloudStorageRepository = cloudStorageRepository;
-        _localStorageRepository = localStorageRepository;
-        _logger = logger;
-        _authService = authService;
-    }
-
     public async Task<bool> Download(List<Mapping> mappings,
         CancellationToken cancellationToken)
     {
-        var credentials = await _authService.Login(cancellationToken);
-
         foreach (var folderMap in mappings)
         {
+            if (folderMap.FilesToSync.Count > 0)
+            {
+                await DownloadFilesFromFolder(folderMap, cancellationToken);
+                continue;
+            }
+
             //TODO: ADD LOGIC TO MAP FILE TO RESULT... PROBABLY A DICTIONARY... ADD RETRY LOGIC?
             var folderStructure = await GetFolderStructureToDownload(folderMap.CloudFolderParentId,
                 folderMap.CloudFolderParentName, folderMap.CloudFolder,
@@ -38,6 +32,29 @@ public class DownloadService : IDownloadService
 
             await DownloadFilesFromFolders(folderStructure, folderMap.LocalFolder,
                 cancellationToken);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DownloadFilesFromFolder(Mapping folderMap, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var credentials = await authService.Login(cancellationToken);
+            var folder = await cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials,
+                folderMap.CloudFolderParentId, folderMap.CloudFolder, cancellationToken);
+            var allFiles =
+                await cloudStorageRepository.GetAllFilesFromFolder(credentials, folder.Id, folder.Name,
+                    cancellationToken);
+            folder.Files = allFiles.Where(f => folderMap.FilesToSync.Contains(f.Name)).ToList();
+
+            // var subFolder = Path.Combine(localFolder, folderMap.LocalFolder);
+            await DownloadFiles(folder.Files, folderMap.LocalFolder, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, Constants.Exceptions.FailedToDownloadFilesFrom, folderMap.CloudFolder);
         }
 
         return true;
@@ -59,20 +76,20 @@ public class DownloadService : IDownloadService
     public async Task<List<Folder>> GetFolderStructureToDownload(string parentId,
         string parentName, string folderName, CancellationToken cancellationToken)
     {
-        var credentials = await _authService.Login(cancellationToken);
+        var credentials = await authService.Login(cancellationToken);
 
         var folder =
-            await _cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folderName,
+            await cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, parentId, folderName,
                 cancellationToken);
 
         if (folder == null)
         {
-            _logger.LogInformation("Folder '{folderName}' doesn't exists on parent '{parentName}'", folderName,
+            logger.LogInformation(Constants.Information.FolderDoesntExistsOn, folderName,
                 parentName);
             return [];
         }
 
-        var folderStructure = await _cloudStorageRepository.GetAllFoldersByParentId(credentials, folder.Id, folder.Name,
+        var folderStructure = await cloudStorageRepository.GetAllFoldersByParentId(credentials, folder.Id, folder.Name,
             folder.ParentId, folder.Name, new CancellationToken());
 
         return folderStructure;
@@ -81,8 +98,8 @@ public class DownloadService : IDownloadService
     public async Task<bool> DownloadFiles(List<File> files, string localFolder, CancellationToken cancellationToken)
     {
         MemoryStream? fileStream;
-        var credentials = await _authService.Login(cancellationToken);
-        var localFiles = _localStorageRepository.GetLocalFiles(localFolder);
+        var credentials = await authService.Login(cancellationToken);
+        var localFiles = localStorageRepository.GetLocalFiles(localFolder);
         foreach (var cloudFile in files)
         {
             var localFile = localFiles.FirstOrDefault(f => f.Name == cloudFile.Name);
@@ -90,21 +107,21 @@ public class DownloadService : IDownloadService
             if (localFile != null &&
                 DateHelper.CheckIfDateIsNewer(localFile.LastModified, cloudFile.LastModified))
             {
-                _logger.LogInformation(
-                    "File {cloudFile.Name} was not downloaded as its version is older than the local version",
+                logger.LogInformation(Constants.Information.CloudFileIsOlderThanLocalFile
+                    ,
                     cloudFile.Name);
                 continue;
             }
 
-            fileStream = await _cloudStorageRepository.DownloadFile(cloudFile.Id, credentials);
+            fileStream = await cloudStorageRepository.DownloadFile(cloudFile.Id, credentials);
             if (fileStream == null)
             {
-                _logger.LogWarning("File {fileName} was not downloaded", cloudFile.Name);
+                logger.LogWarning(Constants.Warning.FailedToDownloadFile, cloudFile.Name);
                 return false;
             }
 
-            _localStorageRepository.SaveStreamAsFile(localFolder, fileStream, cloudFile.Name);
-            _logger.LogInformation("File {cloudFile.Name} was downloaded to {localFolder}", cloudFile.Name,
+            localStorageRepository.SaveStreamAsFile(localFolder, fileStream, cloudFile.Name);
+            logger.LogInformation(Constants.Information.FailedToDownloadFileToFolder, cloudFile.Name,
                 localFolder);
         }
 
