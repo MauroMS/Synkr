@@ -12,6 +12,6 @@ public interface IUploadService
 
     Task<List<Folder>> GetFolderStructureToUpload(string folderPath);
 
-    Task<bool> UploadFiles(List<File> files, string localFolder,
+    Task<bool> UploadFiles(List<File> files, string folderId,
         CancellationToken cancellationToken);
 }

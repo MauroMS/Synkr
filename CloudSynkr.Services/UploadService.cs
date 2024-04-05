@@ -20,11 +20,43 @@ public class UploadService(
     {
         foreach (var folderMap in mappings)
         {
+            if (folderMap.FilesToSync.Count > 0)
+            {
+                await UploadSpecificFilesToFolder(folderMap, cancellationToken);
+                continue;
+            }
+
             var folderStructure = await GetFolderStructureToUpload(folderMap.LocalFolder);
 
             await UploadFilesToFolders(folderStructure, folderMap.CloudFolder,
                 folderMap.CloudFolderParentId, cancellationToken);
         }
+
+        return true;
+    }
+
+    public async Task<bool> UploadSpecificFilesToFolder(Mapping folderMap, CancellationToken cancellationToken)
+    {
+        var credentials = await authService.Login(cancellationToken);
+
+        var cloudFolder =
+            await cloudStorageRepository.GetBasicFolderInfoByNameAndParentId(credentials, folderMap.CloudFolderParentId,
+                folderMap.CloudFolder,
+                cancellationToken) ??
+            await cloudStorageRepository.CreateFolder(credentials, folderMap.CloudFolder, folderMap.CloudFolderParentId,
+                cancellationToken);
+
+        if (cloudFolder == null)
+        {
+            logger.LogError(Constants.Exceptions.FailedToRetrieveCreateFolderOn, folderMap.CloudFolder,
+                folderMap.CloudFolderParentName);
+            return false;
+        }
+
+        var files = localStorageRepository.GetLocalFiles(folderMap.LocalFolder)
+            .Where(f => folderMap.FilesToSync.Contains(f.Name)).ToList();
+
+        await UploadFiles(files, cloudFolder.Id, cancellationToken);
 
         return true;
     }
@@ -61,7 +93,7 @@ public class UploadService(
         return await localStorageRepository.GetLocalFolders(folderPath);
     }
 
-    public async Task<bool> UploadFiles(List<File> files, string parentId,
+    public async Task<bool> UploadFiles(List<File> files, string folderId,
         CancellationToken cancellationToken)
     {
         var credentials = await authService.Login(cancellationToken);
@@ -69,26 +101,34 @@ public class UploadService(
             return false;
 
         var cloudFiles =
-            await cloudStorageRepository.GetAllFilesFromFolder(credentials, parentId, files[0].ParentName,
+            await cloudStorageRepository.GetAllFilesFromFolder(credentials, folderId, files[0].ParentName,
                 cancellationToken);
+
         foreach (var localFile in files)
         {
             var mimeType = MimeTypeMapHelper.GetMimeType(localFile.Name);
             var cloudFile = cloudFiles.FirstOrDefault(f => f.Name == localFile.Name);
-
-            if (cloudFile == null)
+            
+            try
             {
-                cloudStorageRepository.CreateFile(credentials, localFile.Path, parentId, localFile.Name, mimeType);
+                if (cloudFile == null)
+                {
+                    cloudStorageRepository.CreateFile(credentials, localFile.Path, folderId, localFile.Name, mimeType);
+                }
+                else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
+                {
+                    logger.LogInformation(Constants.Information.LocalFileIsOlderThanCloudFile, cloudFile.Name);
+                }
+                else
+                {
+                    localFile.Id = cloudFile.Id;
+                    localFile.ParentId = cloudFile.ParentId;
+                    await cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
+                }
             }
-            else if (DateHelper.CheckIfDateIsNewer(cloudFile.LastModified, localFile.LastModified))
+            catch (Exception ex)
             {
-                logger.LogInformation(Constants.Information.LocalFileIsOlderThanCloudFile, cloudFile.Name);
-            }
-            else
-            {
-                localFile.Id = cloudFile.Id;
-                localFile.ParentId = cloudFile.ParentId;
-                await cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
+                logger.LogError(ex, Constants.Exceptions.FailedToUploadFilesTo, cloudFile?.ParentName ?? localFile.Path);
             }
         }
 
