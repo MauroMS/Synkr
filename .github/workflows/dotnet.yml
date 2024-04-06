@@ -26,7 +26,6 @@ jobs:
       
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      working-directory: ./CloudSynkr.App
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
@@ -34,7 +33,6 @@ jobs:
 
     - name: Publish
       run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
-      working-directory: ./CloudSynkr.App
 
     - name: Zip content
       run: zip -r Synkr.zip ./publish
