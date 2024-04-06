@@ -31,7 +31,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
       
     - name: Publish
-      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --output --no-build --no-pdb -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --output --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
       working-directory: ./CloudSynkr.App
 
     - name: Zip content
