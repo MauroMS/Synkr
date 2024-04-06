@@ -23,8 +23,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --configuration Release --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish .\CloudSynkr.App\CloudSynkr.App.csproj -c release -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      run: dotnet publish ..\..\CloudSynkr.App\CloudSynkr.App.csproj -c release -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
