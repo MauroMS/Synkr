@@ -20,11 +20,50 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+        
     - name: Restore dependencies
       run: dotnet restore
+      
     - name: Build
       run: dotnet build --configuration Release --no-restore
+      
     - name: Test
       run: dotnet test --no-build --verbosity normal
+      
     - name: Publish
-      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --output --no-build --no-pdb -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      working-directory: ./CloudSynkr.App
+
+    - name: Zip content
+      run: zip -r Synkr.zip ./publish
+      working-directory: ./CloudSynkr.App
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.0
+        release_name: Release v1.0.0
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create.create_release.outputs.upload_url }}
+        asset_path: ./CloudSynkr.App/Synkr.zip
+        asset_name: Synkr.zip
+        asset_content_type: application/zip
+    
+    
+    
