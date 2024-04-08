@@ -60,9 +60,9 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: List published content
-      run: ls -l ./publish
-      working-directory: ./CloudSynkr.App
+    #- name: List published content
+    #  run: ls -l ./publish
+    #  working-directory: ./CloudSynkr.App
 
     - name: List published content
       run: ls -l
