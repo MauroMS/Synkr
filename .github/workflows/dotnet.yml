@@ -31,38 +31,10 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Publish
-      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --output --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
-
-    - name: Zip content
-      run: zip -r Synkr.zip ./publish
+      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --output ./publish --no-restore --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
       working-directory: ./CloudSynkr.App
 
-  release:
-    name: Release
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v1.0.0
-        release_name: Release v1.0.0
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create.create_release.outputs.upload_url }}
-        asset_path: ./CloudSynkr.App/Synkr.zip
-        asset_name: Synkr.zip
-        asset_content_type: application/zip
+    
     
     
     
