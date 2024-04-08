@@ -35,7 +35,7 @@ jobs:
 #.Synkr/CloudSynkr.App/CloudSynkr.App.csproj
     - name: Publish
       run: dotnet publish -c release --output ./publish --no-restore --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
-      working-directory: .Synkr/CloudSynkr.App
+      working-directory: ./CloudSynkr.App
 
     
     
