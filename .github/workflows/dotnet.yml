@@ -11,7 +11,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -64,9 +63,9 @@ jobs:
     #  run: ls -l ./publish
     #  working-directory: ./CloudSynkr.App
 
-    - name: List published content
-      run: ls -l
-      working-directory: ./CloudSynkr.App
+    #- name: List published content
+    #  run: ls -l
+    #  working-directory: ./CloudSynkr.App
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
