@@ -32,14 +32,14 @@ jobs:
     - name: Test
       run: dotnet test
       #--verbosity normal
-#.Synkr/CloudSynkr.App/CloudSynkr.App.csproj
+      
     - name: Publish
-      run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App/CloudSynkr.App.csproj
       working-directory: ./CloudSynkr.App
 
     - name: Zip content
       run: zip -r Synkr.zip ./publish
-      working-directory: ./CloudSynkr.App
+      working-directory: ./CloudSynkr.App/publish
 
   release:
     name: Release
