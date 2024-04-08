@@ -29,25 +29,47 @@ jobs:
     - name: Test
       run: dotnet test
       #--verbosity normal
-      
-    - name: Publish
-      run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
-      working-directory: ./CloudSynkr.App
 
     - name: List published content
       run: ls -l ./publish
+      working-directory: ./CloudSynkr.App
+      
+  publish:
+    name: Publish win-x64
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Publish win-x64
+      run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
       working-directory: ./CloudSynkr.App
 
     - name: Zip content
       run: zip -r Synkr.zip ./publish
       working-directory: ./CloudSynkr.App
-      
+    
+    - name: Upload release artifact for win-x64
+      uses: actions/upload-artifact@v4
+      with:
+          name: Synkr-win-x64
+          path: ./CloudSynkr.App/publish/Synkr-win-x64.zip
+
+    
   release:
     name: Release
-    needs: build
+    needs: [build, publish]
     runs-on: ubuntu-latest
 
     steps:
+    - name: Download math result for job 1
+      uses: actions/download-artifact@v4
+      with:
+          name: Synkr-win-x64
+
+    - name: List published content
+      run: ls -l
+      working-directory: ./
+    
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -73,7 +95,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./CloudSynkr.App/publish/Synkr.zip
+        asset_path: ./Synkr.zip
         asset_name: Synkr.zip
         asset_content_type: application/zip
     
