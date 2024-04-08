@@ -60,13 +60,21 @@ jobs:
         draft: false
         prerelease: false
 
+    - name: List published content
+      run: ls -l ./publish
+      working-directory: ./CloudSynkr.App
+
+    - name: List published content
+      run: ls -l
+      working-directory: ./CloudSynkr.App
+
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./CloudSynkr.App/publish/Synkr.zip
+        asset_path: ./CloudSynkr.App/Synkr.zip
         asset_name: Synkr.zip
         asset_content_type: application/zip
     
