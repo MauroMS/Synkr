@@ -30,11 +30,11 @@ jobs:
       working-directory: ./CloudSynkr.App
 
     - name: Test
-      run: dotnet test --logger
+      run: dotnet test
       #--verbosity normal
-
+#.Synkr/CloudSynkr.App/CloudSynkr.App.csproj
     - name: Publish
-      run: dotnet publish .Synkr/CloudSynkr.App/CloudSynkr.App.csproj -c release --output ./publish --no-restore --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      run: dotnet publish -c release --output ./publish --no-restore --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
       working-directory: .Synkr/CloudSynkr.App
 
     
