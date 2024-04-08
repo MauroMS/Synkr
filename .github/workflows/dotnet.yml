@@ -23,16 +23,19 @@ jobs:
         
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: ./CloudSynkr.App
       
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Release
+      working-directory: ./CloudSynkr.App
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --logger
+      #--verbosity normal
 
     - name: Publish
-      run: dotnet publish ./CloudSynkr.App/CloudSynkr.App.csproj -c release --output ./publish --no-restore --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
-      working-directory: ./CloudSynkr.App
+      run: dotnet publish .Synkr/CloudSynkr.App/CloudSynkr.App.csproj -c release --output ./publish --no-restore --no-build /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
+      working-directory: .Synkr/CloudSynkr.App
 
     
     
