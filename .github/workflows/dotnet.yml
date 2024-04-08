@@ -37,7 +37,7 @@ jobs:
 
     - name: Zip content
       run: zip -r Synkr.zip ./publish
-      working-directory: ./CloudSynkr.App
+      working-directory: ./CloudSynkr.App/publish
 
   release:
     name: Release
