@@ -37,7 +37,7 @@ jobs:
 
     - name: List published content
       run: ls -l ./YourConsoleApp/publish
-      working-directory: ./YourConsoleApp 
+      working-directory: ./CloudSynkr.App
 
     - name: Zip content
       run: zip -r Synkr.zip -i ./publish
