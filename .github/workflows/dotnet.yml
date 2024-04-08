@@ -36,10 +36,6 @@ jobs:
       working-directory: ./CloudSynkr.App
 
     - name: List published content
-      run: ls -l ./CloudSynkr.App
-      working-directory: ./CloudSynkr.App
-
-    - name: List published content
       run: ls -l ./publish
       working-directory: ./CloudSynkr.App
 
