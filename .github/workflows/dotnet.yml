@@ -37,7 +37,35 @@ jobs:
       run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r win-x64 --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true
       working-directory: ./CloudSynkr.App
 
-    
-    
+    - name: Zip content
+      run: zip -r Synkr.zip ./publish
+      working-directory: ./CloudSynkr.App
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.0
+        release_name: Release v1.0.0
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create.create_release.outputs.upload_url }}
+        asset_path: ./CloudSynkr.App/Synkr.zip
+        asset_name: Synkr.zip
+        asset_content_type: application/zip
     
     
