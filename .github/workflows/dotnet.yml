@@ -79,9 +79,6 @@ jobs:
           name: Synkr-win-x64
           path: ./CloudSynkr.App/publish/
 
-    - name: List published content 1
-      run: ls -l ./Synkr/CloudSynkr.App/publish
-
     - name: List published content 2
       run: ls -l ./
 
