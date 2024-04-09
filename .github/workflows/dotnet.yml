@@ -94,14 +94,18 @@ jobs:
     name: Tagging
     needs: publish
     runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.tag.outputs.new_tag  }}
     permissions:
       contents: write
+    
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: '0'
       
       - name: Bump version and push tag
+        id: tag
         uses: anothrNick/github-tag-action@1.67.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -128,7 +132,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Download math result for job 1
+    - name: Download pacakge for ${{ matrix.target }}
       uses: actions/download-artifact@v4
       with:
           name: Synkr-${{ matrix.target }}
@@ -145,12 +149,6 @@ jobs:
     - name: List published content 5
       run: ls -R
     
-    - name: Version
-      run: echo ${{ needs.tagging.outputs }}
-
-    - name: Version
-      run: echo ${{ needs.tagging.outputs.tag }}
-
     - name: Version
       run: echo ${{ needs.tagging.outputs.new_tag }}
       
