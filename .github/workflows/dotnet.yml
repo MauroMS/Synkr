@@ -41,7 +41,7 @@ jobs:
 
   publish:
     name: Publish $os
-    #needs: [build, test]
+    needs: [build, test]
     runs-on: ubuntu-latest
 
     strategy:
