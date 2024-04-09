@@ -61,7 +61,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: Synkr-win-x64
-          path: ./CloudSynkr.App/publish/
+          path: ./CloudSynkr.App/publish/**
+          if-no-files-found: error
 
     
   release:
@@ -79,13 +80,13 @@ jobs:
           name: Synkr-win-x64
 
     - name: List published content 2
-      run: ls -l ./
+      run: ls -R
 
-    - name: List published content 3
-      run: ls -l ./CloudSynkr.App/
+    # - name: List published content 3
+    #   run: ls -l ./CloudSynkr.App/
 
-    - name: List published content 5
-      run: ls -l ./CloudSynkr.App/publish
+    # - name: List published content 5
+    #   run: ls -l ./CloudSynkr.App/publish
     
     # - name: Create Release
     # - uses: ncipollo/release-action@v1
