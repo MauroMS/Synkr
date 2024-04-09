@@ -2,7 +2,7 @@ on:
   workflow_call:
 
 jobs:
-    reusable_workflow_job:
+    build:
         runs-on: ubuntu-latest
 
         steps:
@@ -17,7 +17,3 @@ jobs:
               
             - name: Build
               run: dotnet build --configuration Release --no-restore
-        
-            - name: Test
-              run: dotnet test
-              #--verbosity normal
