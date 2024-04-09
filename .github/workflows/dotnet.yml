@@ -1,7 +1,14 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: Build, Test & Release
+
+# on:
+#   pull_request:
+#     types:
+#       - closed
+#     branches:
+#       - master
 
 on:
   push:
@@ -120,6 +127,13 @@ jobs:
     - name: List published content 5
       run: ls -R
 
+    - name: Tagging
+      uses: anothrNick/github-tag-action@1.67.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+
+      
     - name: Create Release
       # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       uses: ncipollo/release-action@v1
