@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-   uses: ./build.yml
+   uses: ./.github/workflows/build.yml
   #   runs-on: ubuntu-latest
   #   steps:
   #   - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
   #     #--verbosity normal
   
   test:
-    uses: ./test.yml
+    uses: ./.github/workflows/test.yml
     # runs-on: ubuntu-latest
     # #needs: build
     # steps:
