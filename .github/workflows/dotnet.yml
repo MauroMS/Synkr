@@ -18,7 +18,7 @@ on:
 
 jobs:
   build:
-  #  uses: ./.github/workflows/build.yml
+  #  uses: ./.github/workflows/build_test.yml
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -78,9 +78,9 @@ jobs:
       run: dotnet publish -c release --output ./publish-${{ matrix.target }} /p:DebugType=None /p:DebugSymbols=false -r ${{ matrix.target }} --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
       working-directory: ./CloudSynkr.App
 
-    - name: List published content
-      run: ls -l ./publish-${{ matrix.target }}
-      working-directory: ./CloudSynkr.App
+    # - name: List published content
+    #   run: ls -l ./publish-${{ matrix.target }}
+    #   working-directory: ./CloudSynkr.App
     
     - name: Upload release artifact for ${{ matrix.target }}
       uses: actions/upload-artifact@v4
@@ -146,11 +146,11 @@ jobs:
       if: ${{ matrix.kind == 'windows'}}
       run: Compress-Archive -Path ./Synkr-${{ matrix.target }} -Destination Synkr-${{ matrix.target }}.zip
 
-    - name: List published content 5
-      run: ls -R
+    # - name: List published content 5
+    #   run: ls -R
     
-    - name: Version
-      run: echo ${{ needs.tagging.outputs.new_tag }}
+    # - name: Version
+    #   run: echo ${{ needs.tagging.outputs.new_tag }}
       
     - name: Create Release
       # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -161,7 +161,7 @@ jobs:
           artifacts: Synkr-${{ matrix.target }}.zip
           artifactContentType: "raw"
           body: ${{ github.event.head_commit.message }}
-          name: Synkr-AAAAAAA-${{github.run_number}}
+          name: Synkr ${{ needs.tagging.outputs.new_tag }}
           # omitBodyDuringUpdate: true
           # omitNameDuringUpdate: true
           # owner: tahoma2d
