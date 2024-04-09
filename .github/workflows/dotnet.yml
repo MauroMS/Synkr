@@ -51,8 +51,7 @@ jobs:
       working-directory: ./CloudSynkr.App
 
     - name: Zip content
-      run: zip -r Synkr-win-x64.zip
-      working-directory: ./CloudSynkr.App/publish
+      run: zip -r Synkr-win-x64.zip ./CloudSynkr.App/publish
 
     - name: List published content 2
       run: ls -l ./publish
