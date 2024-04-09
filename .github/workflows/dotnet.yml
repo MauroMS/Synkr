@@ -51,7 +51,7 @@ jobs:
       working-directory: ./CloudSynkr.App
 
     - name: Zip content
-      run: zip -r Synkr.zip ./publish
+      run: zip -r Synkr-win-x64.zip ./publish
       working-directory: ./CloudSynkr.App
     
     - name: Upload release artifact for win-x64
