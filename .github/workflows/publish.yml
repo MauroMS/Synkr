@@ -3,7 +3,7 @@ on:
   
 jobs:
     publish:
-        name: Publish ${{ matrix.os }}
+        name: ${{ matrix.os }}
         runs-on: ubuntu-latest
     
         strategy:
