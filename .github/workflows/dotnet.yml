@@ -76,12 +76,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
           name: Synkr-win-x64
+          path: ./publish
 
     - name: List published content 2
       run: ls -R
     
     - name: Zip content
-      run: zip -r Synkr-win-x64.zip -i ./
+      run: zip -r Synkr-win-x64.zip -i ./publish
 
     # - name: List published content 3
     #   run: ls -l ./CloudSynkr.App/
