@@ -82,7 +82,7 @@ jobs:
       run: ls -R
     
     - name: Zip content
-      run: zip -r Synkr-win-x64.zip -i ./publish
+      run: zip -r Synkr-win-x64.zip ./publish
 
     # - name: List published content 3
     #   run: ls -l ./CloudSynkr.App/
@@ -103,7 +103,7 @@ jobs:
       with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: Synkr-win-x64.zip
+          artifacts: ./publish/Synkr-win-x64.zip
           artifactContentType: "raw"
           body: ${{ github.event.head_commit.message }}
           # name: ${{ env.NIGHTLYDATETIME }}
