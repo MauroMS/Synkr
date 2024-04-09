@@ -46,7 +46,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [win-x64]
+        os: [win-x64,osx-x64,linux-x64]
 
     steps:
     - uses: actions/checkout@v4
@@ -55,18 +55,18 @@ jobs:
       with:
         dotnet-version: 8.0.x
     
-    - name: Publish
-      run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r $os --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
+    - name: Publish ${{ matrix.os }}
+      run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r ${{ matrix.os }} --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
       working-directory: ./CloudSynkr.App
 
     - name: List published content
       run: ls -l ./publish
       working-directory: ./CloudSynkr.App
     
-    - name: Upload release artifact for win-x64
+    - name: Upload release artifact for ${{ matrix.os }}
       uses: actions/upload-artifact@v4
       with:
-          name: Synkr-win-x64
+          name: Synkr-${{ matrix.os }}
           path: ./CloudSynkr.App/publish/
           if-no-files-found: error
 
