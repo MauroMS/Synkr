@@ -10,29 +10,29 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  # build:
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Setup .NET
+  #     uses: actions/setup-dotnet@v4
+  #     with:
+  #       dotnet-version: 8.0.x
         
-    - name: Restore dependencies
-      run: dotnet restore
+  #   - name: Restore dependencies
+  #     run: dotnet restore
       
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+  #   - name: Build
+  #     run: dotnet build --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test
-      #--verbosity normal
+  #   - name: Test
+  #     run: dotnet test
+  #     #--verbosity normal
       
   publish:
     name: Publish win-x64
-    needs: build
+    #needs: build
     runs-on: ubuntu-latest
 
     steps:
@@ -61,12 +61,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: Synkr-win-x64
-          path: ./CloudSynkr.App/publish/Synkr-win-x64.zip
+          path: ./CloudSynkr.App/publish/
 
     
   release:
     name: Release
-    needs: [build, publish]
+    #needs: [build, publish]
+    needs: publish
     runs-on: ubuntu-latest
 
     steps:
