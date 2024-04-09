@@ -26,23 +26,24 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    # - name: Test
-    #   run: dotnet test --verbosity normal
+    - name: Test
+      run: dotnet test --no-build --no-restore --verbosity normal
 
       
-  test:
-    # uses: ./.github/workflows/test.yml
-    # needs: build
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v4
-      - name: Test
-        run: dotnet test --verbosity normal
+  # test:
+  #   # uses: ./.github/workflows/test.yml
+  #   # needs: build
+  #   runs-on: ubuntu-latest    
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test
+  #       run: dotnet test --verbosity normal
 
 
   publish:
     # uses: ./.github/workflows/publish.yml
-    needs: [build, test]
+    # needs: [build, test]
+    needs: build
     name: Publish
     strategy:
       matrix:
@@ -106,10 +107,10 @@ jobs:
       uses: actions/download-artifact@v4
       with:
           name: Synkr-${{ matrix.target }}
-          path: ./publish
+          path: ./Synkr-${{ matrix.target }}
     
     - name: Zip content
-      run: zip -r Synkr-${{ matrix.target }}.zip ./publish
+      run: zip -r Synkr-${{ matrix.target }}.zip ./Synkr-${{ matrix.target }}
 
     - name: List published content 5
       run: ls -R
