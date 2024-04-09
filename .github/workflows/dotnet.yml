@@ -79,6 +79,9 @@ jobs:
 
     - name: List published content 2
       run: ls -R
+    
+    - name: Zip content
+      run: zip -r Synkr-win-x64.zip
 
     # - name: List published content 3
     #   run: ls -l ./CloudSynkr.App/
