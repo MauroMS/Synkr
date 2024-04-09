@@ -5,9 +5,9 @@ name: .NET
 
 on:
   push:
-    branches: [ "main", "release-script" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "release-script" ]
+    branches: [ "main" ]
 
 jobs:
   # build:
@@ -61,7 +61,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: Synkr-win-x64
-          path: ./CloudSynkr.App/publish/**
+          path: ./CloudSynkr.App/publish/
           if-no-files-found: error
 
     
@@ -72,8 +72,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-
     - name: Download math result for job 1
       uses: actions/download-artifact@v4
       with:
