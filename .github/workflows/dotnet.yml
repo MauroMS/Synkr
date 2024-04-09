@@ -71,6 +71,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
           name: Synkr-win-x64
+          path: ./CloudSynkr.App/publish/
 
     - name: List published content
       run: ls -l
