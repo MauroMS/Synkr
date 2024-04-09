@@ -110,7 +110,12 @@ jobs:
           path: ./Synkr-${{ matrix.target }}
     
     - name: Zip content
+      if: ${{ matrix.kind != 'windows'}}
       run: zip -r Synkr-${{ matrix.target }}.zip ./Synkr-${{ matrix.target }}
+
+    - name: Zip content
+      if: ${{ matrix.kind == 'windows'}}
+      run: Compress-Archive -Path ./Synkr-${{ matrix.target }} -Destination Synkr-${{ matrix.target }}.zip
 
     - name: List published content 5
       run: ls -R
