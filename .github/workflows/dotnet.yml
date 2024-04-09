@@ -61,7 +61,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: Synkr-win-x64
-          path: ./CloudSynkr.App/publish/
+          path: ./CloudSynkr.App/publish/Synkr-win-x64.zip
 
     
   release:
@@ -70,6 +70,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
+
     - name: Download math result for job 1
       uses: actions/download-artifact@v4
       with:
@@ -79,25 +81,53 @@ jobs:
     - name: List published content 5
       run: ls -l ./CloudSynkr.App/publish
     
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v1.0.0
-        release_name: Release v1.0.0
-        draft: false
-        prerelease: false
+    # - name: Create Release
+    # - uses: ncipollo/release-action@v1
+    #   with:
+    #     artifacts: "release.tar.gz,foo/*.txt"
+    #     bodyFile: "body.md"
 
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Release
+      # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      uses: ncipollo/release-action@v1
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./CloudSynkr.App/publish/Synkr-win-x64.zip
-        asset_name: Synkr-win-x64.zip
-        asset_content_type: application/zip
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ./CloudSynkr.App/publish/
+          artifactContentType: "raw"
+          body: ${{ github.event.head_commit.message }}
+          # name: ${{ env.NIGHTLYDATETIME }}
+          # omitBodyDuringUpdate: true
+          # omitNameDuringUpdate: true
+          # owner: tahoma2d
+          # prerelease: true
+          replacesArtifacts: true
+          #repo: tahoma2d_nightlies
+          tag: v1.0.0
+          #nightly-${{ github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+
+    #- name: Create Release 2
+    #  id: create_release
+    #  uses: actions/create-release@v1
+    #  env:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #  with:
+    #    tag_name: v1.0.0
+    #    release_name: Release v1.0.0
+    #    draft: false
+    #    prerelease: false
+
+    #- name: Upload Release Asset
+    #  uses: actions/upload-release-asset@v1
+    #  env:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #  with:
+    #    upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #    asset_path: ./CloudSynkr.App/publish/Synkr-win-x64.zip
+    #    asset_name: Synkr-win-x64.zip
+    #    asset_content_type: application/zip
     
     
