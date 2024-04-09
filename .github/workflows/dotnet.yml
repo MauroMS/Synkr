@@ -129,13 +129,13 @@ jobs:
           artifacts: Synkr-${{ matrix.target }}.zip
           artifactContentType: "raw"
           body: ${{ github.event.head_commit.message }}
-          # name: ${{ env.NIGHTLYDATETIME }}
+          name: Synkr-AAAAAAA-${{github.run_number}}
           # omitBodyDuringUpdate: true
           # omitNameDuringUpdate: true
           # owner: tahoma2d
           # prerelease: true
           replacesArtifacts: true
           #repo: tahoma2d_nightlies
-          tag: v1.0.0
+          tag: v${{github.run_number}}
           #nightly-${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
