@@ -101,7 +101,7 @@ jobs:
       with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ./CloudSynkr.App/publish/Synkr-win-x64.zip
+          artifacts: Synkr-win-x64.zip
           artifactContentType: "raw"
           body: ${{ github.event.head_commit.message }}
           # name: ${{ env.NIGHTLYDATETIME }}
