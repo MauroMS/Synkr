@@ -89,7 +89,17 @@ jobs:
           path: ./CloudSynkr.App/publish-${{ matrix.target }}/
           if-no-files-found: error
 
-    
+
+  tagging:
+    name: Tagging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true 
+
+
   release:
     name: Release
     needs: [publish]
@@ -126,13 +136,6 @@ jobs:
 
     - name: List published content 5
       run: ls -R
-
-    - name: Tagging
-      uses: anothrNick/github-tag-action@1.67.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        WITH_V: true
-
       
     - name: Create Release
       # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -150,6 +153,6 @@ jobs:
           # prerelease: true
           replacesArtifacts: true
           #repo: tahoma2d_nightlies
-          tag: v${{github.run_number}}
+          #tag: ${{ jobs.tagging.steps.outputs.tag }}
           #nightly-${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
