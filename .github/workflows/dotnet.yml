@@ -40,7 +40,7 @@ jobs:
     #     run: dotnet test --verbosity normal
 
   publish:
-    name: Publish $os
+    name: Publish1
     needs: [build, test]
     runs-on: ubuntu-latest
 
@@ -55,7 +55,7 @@ jobs:
       with:
         dotnet-version: 8.0.x
     
-    - name: Publish win-x64
+    - name: Publish
       run: dotnet publish -c release --output ./publish /p:DebugType=None /p:DebugSymbols=false -r $os --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
       working-directory: ./CloudSynkr.App
 
