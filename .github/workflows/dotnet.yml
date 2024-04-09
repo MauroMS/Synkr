@@ -102,7 +102,7 @@ jobs:
 
   release:
     name: Release
-    needs: [publish]
+    needs: [publish, tagging]
     # needs: publish
     strategy:
       matrix:
@@ -153,6 +153,6 @@ jobs:
           # prerelease: true
           replacesArtifacts: true
           #repo: tahoma2d_nightlies
-          #tag: ${{ jobs.tagging.steps.outputs.tag }}
+          tag: ${{ needs.tagging.outputs.new_tag }}
           #nightly-${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
