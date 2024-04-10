@@ -1,6 +1,9 @@
-  on:
-    workflow_call:
+name: PR Merge
   
-  jobs:
-      build_test:
-          uses: ./.github/workflows/build_test.yml
+on:
+  pull_request:
+    branches: [ "main" ]
+  
+jobs:
+    build_test:
+      uses: ./.github/workflows/build_test.yml
