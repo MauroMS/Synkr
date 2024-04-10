@@ -83,7 +83,7 @@ jobs:
 
   release:
     name: Release
-    needs: [build, publish, tagging]
+    needs: tagging
     strategy:
       matrix:
         kind: ['linux', 'windows', 'macOS']
@@ -99,7 +99,7 @@ jobs:
             target: osx-x64
       fail-fast: true
       max-parallel: 1
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Download pacakge for ${{ matrix.target }}
