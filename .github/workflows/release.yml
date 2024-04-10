@@ -18,38 +18,9 @@ on:
 
 jobs:
   build:
-  #  uses: ./.github/workflows/build_test.yml
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Test
-      run: dotnet test --no-build --no-restore --verbosity normal
-
-      
-  # test:
-  #   # uses: ./.github/workflows/test.yml
-  #   # needs: build
-  #   runs-on: ubuntu-latest    
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Test
-  #       run: dotnet test --verbosity normal
-
+    uses: ./.github/workflows/build_test.yml
 
   publish:
-    # uses: ./.github/workflows/publish.yml
-    # needs: [build, test]
     needs: build
     name: Publish
     strategy:
@@ -77,10 +48,6 @@ jobs:
     - name: Publish ${{ matrix.target }}
       run: dotnet publish -c release --output ./publish-${{ matrix.target }} /p:DebugType=None /p:DebugSymbols=false -r ${{ matrix.target }} --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
       working-directory: ./CloudSynkr.App
-
-    # - name: List published content
-    #   run: ls -l ./publish-${{ matrix.target }}
-    #   working-directory: ./CloudSynkr.App
     
     - name: Upload release artifact for ${{ matrix.target }}
       uses: actions/upload-artifact@v4
@@ -145,12 +112,6 @@ jobs:
     - name: Zip content
       if: ${{ matrix.kind == 'windows'}}
       run: Compress-Archive -Path ./Synkr-${{ matrix.target }} -Destination Synkr-${{ matrix.target }}.zip
-
-    # - name: List published content 5
-    #   run: ls -R
-    
-    # - name: Version
-    #   run: echo ${{ needs.tagging.outputs.new_tag }}
       
     - name: Create Release
       # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
