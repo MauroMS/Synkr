@@ -4,9 +4,7 @@
 name: Build, Test & Release
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
       - main
 
@@ -99,7 +97,9 @@ jobs:
           - kind: macOS
             os: macos-latest
             target: osx-x64
-    runs-on: ${{ matrix.os }}
+      fail-fast: true
+      max-parallel: 1
+    runs-on: ubuntu-latest
 
     steps:
     - name: Download pacakge for ${{ matrix.target }}
@@ -124,6 +124,7 @@ jobs:
           artifactErrorsFailBuild: true
           artifacts: Synkr-${{ matrix.target }}.zip
           artifactContentType: "raw"
+          generateReleaseNotes: true
           #body: ${{ github.event.head_commit.message }}
           body: ${{ needs.tagging.outputs.changelog }}
           name: Release ${{ needs.tagging.outputs.new_tag }}
