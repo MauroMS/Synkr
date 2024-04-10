@@ -63,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_tag: ${{ steps.tag.outputs.new_tag  }}
+      changelog:  ${{ steps.tag.outputs.changelog }}
     permissions:
       contents: write
     
@@ -123,7 +124,8 @@ jobs:
           artifactErrorsFailBuild: true
           artifacts: Synkr-${{ matrix.target }}.zip
           artifactContentType: "raw"
-          body: ${{ github.event.head_commit.message }}
+          #body: ${{ github.event.head_commit.message }}
+          body: ${{ needs.tagging.outputs.changelog }}
           name: Release ${{ needs.tagging.outputs.new_tag }}
           # omitBodyDuringUpdate: true
           # omitNameDuringUpdate: true
