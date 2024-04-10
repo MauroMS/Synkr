@@ -3,18 +3,18 @@
 
 name: Build, Test & Release
 
-# on:
-#   pull_request:
-#     types:
-#       - closed
-#     branches:
-#       - master
-
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    types:
+      - closed
+    branches:
+      - main
+
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
 
 jobs:
   build:
