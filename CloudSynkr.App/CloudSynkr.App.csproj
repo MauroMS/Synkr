@@ -7,6 +7,7 @@
 		<Nullable>enable</Nullable>
 		<RootNamespace>CloudSynkr.App</RootNamespace>
 		<AssemblyName>CloudSynkr.App</AssemblyName>
+		<RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<ItemGroup>
