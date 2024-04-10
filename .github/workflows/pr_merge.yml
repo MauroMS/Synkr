@@ -1,0 +1,6 @@
+  on:
+    workflow_call:
+  
+  jobs:
+      build_test:
+          uses: ./github/workflows/build_test.yml
