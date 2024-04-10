@@ -3,4 +3,4 @@
   
   jobs:
       build_test:
-          uses: ./github/workflows/build_test.yml
+          uses: ./.github/workflows/build_test.yml

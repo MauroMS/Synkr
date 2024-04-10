@@ -57,32 +57,13 @@ jobs:
           if-no-files-found: error
 
 
-  tagging:
-    name: Tagging
-    needs: publish
-    runs-on: ubuntu-latest
-    outputs:
-      new_tag: ${{ steps.tag.outputs.new_tag  }}
-    permissions:
-      contents: write
+  # tagging:
     
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-      
-      - name: Bump version and push tag
-        id: tag
-        uses: anothrNick/github-tag-action@1.67.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true 
 
 
   release:
     name: Release
-    needs: [publish, tagging]
-    # needs: publish
+    needs: [build, publish]
     strategy:
       matrix:
         kind: ['linux', 'windows', 'macOS']
@@ -112,7 +93,10 @@ jobs:
     - name: Zip content
       if: ${{ matrix.kind == 'windows'}}
       run: Compress-Archive -Path ./Synkr-${{ matrix.target }} -Destination Synkr-${{ matrix.target }}.zip
-      
+    
+    - name: tagging
+      uses: ./.github/workflows/tagging.yml     
+
     - name: Create Release
       # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       uses: ncipollo/release-action@v1
@@ -122,13 +106,15 @@ jobs:
           artifacts: Synkr-${{ matrix.target }}.zip
           artifactContentType: "raw"
           body: ${{ github.event.head_commit.message }}
-          name: Synkr ${{ needs.tagging.outputs.new_tag }}
+          # name: Synkr ${{ needs.tagging.outputs.new_tag }}
+          name: Synkr ${{ steps.tagging.outputs.new_tag }}
           # omitBodyDuringUpdate: true
           # omitNameDuringUpdate: true
           # owner: tahoma2d
           # prerelease: true
           replacesArtifacts: true
           #repo: tahoma2d_nightlies
-          tag: ${{ needs.tagging.outputs.new_tag }}
+          tag: ${{ steps.tagging.outputs.new_tag }}
+          # tag: ${{ needs.tagging.outputs.new_tag }}
           #nightly-${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
