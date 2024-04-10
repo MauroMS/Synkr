@@ -1,0 +1,134 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build, Test & Release
+
+# on:
+#   pull_request:
+#     types:
+#       - closed
+#     branches:
+#       - master
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build_test.yml
+
+  publish:
+    needs: build
+    name: Publish
+    strategy:
+      matrix:
+        kind: ['linux', 'windows', 'macOS']
+        include:
+          - kind: linux
+            os: ubuntu-latest
+            target: linux-x64
+          - kind: windows
+            os: windows-latest
+            target: win-x64
+          - kind: macOS
+            os: macos-latest
+            target: osx-x64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Publish ${{ matrix.target }}
+      run: dotnet publish -c release --output ./publish-${{ matrix.target }} /p:DebugType=None /p:DebugSymbols=false -r ${{ matrix.target }} --self-contained -p:PublishReadyToRun=true -p:PublishSingleFile=true ./CloudSynkr.App.csproj
+      working-directory: ./CloudSynkr.App
+    
+    - name: Upload release artifact for ${{ matrix.target }}
+      uses: actions/upload-artifact@v4
+      with:
+          name: Synkr-${{ matrix.target }}
+          path: ./CloudSynkr.App/publish-${{ matrix.target }}/
+          if-no-files-found: error
+
+
+  tagging:
+    name: Tagging
+    needs: publish
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.tag.outputs.new_tag  }}
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      
+      - name: Bump version and push tag
+        id: tag
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true 
+
+
+  release:
+    name: Release
+    needs: [publish, tagging]
+    # needs: publish
+    strategy:
+      matrix:
+        kind: ['linux', 'windows', 'macOS']
+        include:
+          - kind: linux
+            os: ubuntu-latest
+            target: linux-x64
+          - kind: windows
+            os: windows-latest
+            target: win-x64
+          - kind: macOS
+            os: macos-latest
+            target: osx-x64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Download pacakge for ${{ matrix.target }}
+      uses: actions/download-artifact@v4
+      with:
+          name: Synkr-${{ matrix.target }}
+          path: ./Synkr-${{ matrix.target }}
+    
+    - name: Zip content
+      if: ${{ matrix.kind != 'windows'}}
+      run: zip -r Synkr-${{ matrix.target }}.zip ./Synkr-${{ matrix.target }}
+
+    - name: Zip content
+      if: ${{ matrix.kind == 'windows'}}
+      run: Compress-Archive -Path ./Synkr-${{ matrix.target }} -Destination Synkr-${{ matrix.target }}.zip
+      
+    - name: Create Release
+      # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      uses: ncipollo/release-action@v1
+      with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: Synkr-${{ matrix.target }}.zip
+          artifactContentType: "raw"
+          body: ${{ github.event.head_commit.message }}
+          name: Synkr ${{ needs.tagging.outputs.new_tag }}
+          # omitBodyDuringUpdate: true
+          # omitNameDuringUpdate: true
+          # owner: tahoma2d
+          # prerelease: true
+          replacesArtifacts: true
+          #repo: tahoma2d_nightlies
+          tag: ${{ needs.tagging.outputs.new_tag }}
+          #nightly-${{ github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
