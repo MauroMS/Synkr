@@ -2,6 +2,9 @@
 
 [![Release](https://github.com/MauroMS/Synkr/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/MauroMS/Synkr/actions/workflows/release.yml)
 
+[![Stable Version](https://img.shields.io/github/v/tag/MauroMS/Synkr)](https://img.shields.io/github/v/tag/MauroMS/Synkr)
+[![Latest Release](https://img.shields.io/github/v/release/anothrNick/github-tag-action?color=%233D9970)](https://img.shields.io/github/v/release/anothrNick/github-tag-action?color=%233D9970)
+
 It's a small piece of software to Sync files between your device and google cloud.
 I created this as the way google drive sync works doesn't suit my needs.
 
