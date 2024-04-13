@@ -19,12 +19,12 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         var clientInfoPath = "";
         try
         {
+            if (_userCredential != null)
+                return _userCredential;
+
             logger.LogInformation(Constants.Information.StartedLogin);
 
             clientInfoPath = GetClientInfoPath();
-
-            if (_userCredential != null)
-                return _userCredential;
 
             await using var stream = new FileStream(clientInfoPath, FileMode.Open, FileAccess.Read);
             var clientSecrets = await GoogleClientSecrets.FromStreamAsync(stream, cancellationToken);

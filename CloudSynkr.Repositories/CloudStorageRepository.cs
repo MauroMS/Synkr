@@ -116,7 +116,7 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
 
         foreach (var subFolderPath in listFoldersRequest.Files.Where(f => f.MimeType == FileType.Folder))
         {
-            fullPath += @$"\{subFolderPath.Name}";
+            fullPath += @$"{Path.DirectorySeparatorChar}{subFolderPath.Name}";
             var subFolders =
                 await GetAllFoldersByParentId(credentials, subFolderPath.Id, subFolderPath.Name, folderId, fullPath,
                     cancellationToken);

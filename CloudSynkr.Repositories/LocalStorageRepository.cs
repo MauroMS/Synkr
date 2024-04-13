@@ -110,7 +110,7 @@ public class LocalStorageRepository(ILogger<LocalStorageRepository> logger) : IL
 
     private string GetName(string fullPath)
     {
-        return fullPath.Split(@"\").Last();
+        return fullPath.Split(Path.DirectorySeparatorChar).Last();
     }
 
     private string GetParentName(string fullPath)
