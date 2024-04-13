@@ -5,5 +5,5 @@ on:
     branches: [ "main" ]
   
 jobs:
-    pr_merge:
-      uses: ./.github/workflows/build_test.yml
+  pr_merge:
+    uses: ./.github/workflows/build_test.yml
