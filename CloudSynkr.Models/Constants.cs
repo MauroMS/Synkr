@@ -13,6 +13,7 @@ public static class Constants
         public const string FailedToRetrieveFilesFrom = "Failed to retrieve files from '{fileFullPath}'";
         public const string FailedToDownloadFilesFrom = "Failed to download files from '{fileFullPath}'";
         public const string FailedToUploadFilesTo = "Failed to upload files to '{cloudPath}'";
+        public const string FailedToUploadFileTo = "Failed to upload file '{fileName}' to '{cloudPath}'";
         
         public const string FileDoesntExists = "File '{clientInfoPath}' does not exists";
         public const string LoginFailed = "Login failed";
@@ -20,6 +21,9 @@ public static class Constants
 
         public const string FailedToRetrieveCreateFolderOn =
             "Error retrieving/creating folder '{folderName}' on path '{path}'";
+
+        public const string MimeTypeDoesntExistsOnMapping = "MimeType '{0}' doesn't exists on mapping. MimeType set to default value '{1}'.";
+        public const string MimeTypeCannotBeNull = "MimeType of a file cannot be null.";
     }
 
     public static class Information

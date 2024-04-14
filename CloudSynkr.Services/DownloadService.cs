@@ -1,4 +1,5 @@
 ﻿using CloudSynkr.Models;
+using CloudSynkr.Models.Exceptions;
 using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
 using CloudSynkr.Utils;
@@ -125,5 +126,30 @@ public class DownloadService(
         }
 
         return true;
+    }
+
+    public async Task<Dictionary<string, string>> GetNewFileMimeTypes(CancellationToken cancellationToken)
+    {
+        var credentials = await authService.Login(cancellationToken);
+
+        var mimetypes = await cloudStorageRepository.GetNewFileMimeTypes(credentials, cancellationToken);
+
+        foreach (var mimetype in mimetypes)
+        {
+            try
+            {
+                var mime = MimeTypeMapHelper.GetMimeType(mimetype.Key);
+                if (string.IsNullOrEmpty(mime))
+                {
+                    Console.WriteLine($"{{\"{mimetype.Key}\", \"{mimetype.Value}\"}},");
+                }
+            }
+            catch (MimeTypeException ex)
+            {
+                Console.WriteLine($"{{\"{mimetype.Key}\", \"{mimetype.Value}\"}},");
+            }
+        }
+
+        return mimetypes;
     }
 }

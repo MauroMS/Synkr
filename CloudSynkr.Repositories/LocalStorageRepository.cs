@@ -64,7 +64,7 @@ public class LocalStorageRepository(ILogger<LocalStorageRepository> logger) : IL
         CheckIfFolderExistsAndCreate(filePath);
         inputStream.Position = 0;
         var path = Path.Combine(filePath, fileName);
-        
+
         try
         {
             using (var outputFileStream = new FileStream(path, FileMode.Create))
@@ -110,12 +110,12 @@ public class LocalStorageRepository(ILogger<LocalStorageRepository> logger) : IL
 
     private string GetName(string fullPath)
     {
-        return fullPath.Split(Path.DirectorySeparatorChar).Last();
+        return fullPath.TrimEnd(Path.DirectorySeparatorChar).Split(Path.DirectorySeparatorChar).Last();
     }
 
     private string GetParentName(string fullPath)
     {
-        var paths = fullPath.Split(@"\");
+        var paths = fullPath.Split(Path.DirectorySeparatorChar);
         return paths.Length > 1 ? paths[^2] : paths[^1];
     }
 }

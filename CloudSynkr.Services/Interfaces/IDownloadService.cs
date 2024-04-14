@@ -15,4 +15,6 @@ public interface IDownloadService
         CancellationToken cancellationToken);
 
     Task<bool> DownloadFiles(List<File> files, string localFolder, CancellationToken cancellationToken);
+
+    Task<Dictionary<string, string>> GetNewFileMimeTypes(CancellationToken cancellationToken);
 }

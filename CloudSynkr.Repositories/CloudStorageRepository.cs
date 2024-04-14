@@ -214,6 +214,51 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
         return null;
     }
 
+    public async Task<Dictionary<string, string>> GetNewFileMimeTypes(UserCredential credentials,
+        CancellationToken cancellationToken)
+    {
+        // logger.LogInformation(Constants.Information.GetAllFilesFromFolder, folderName);
+        using var driveService = new DriveService(new BaseClientService.Initializer()
+            { HttpClientInitializer = credentials, ApplicationName = Constants.Information.Synkr });
+
+        var files = new List<Google.Apis.Drive.v3.Data.File>();
+        var mimetypes = new Dictionary<string, string>();
+
+        string pageToken = null;
+        do
+        {
+            var filesRequest = driveService.Files.List();
+            filesRequest.Fields = "nextPageToken, files(name, mimeType, parents)";
+            filesRequest.PageSize = 1000;
+            filesRequest.PageToken = pageToken;
+            filesRequest.Q = $"mimeType != '{FileType.Folder}'";
+
+            var result = await filesRequest.ExecuteAsync(cancellationToken);
+
+            files.AddRange(result.Files);
+
+            pageToken = result.NextPageToken;
+        } while (pageToken != null);
+
+        Console.WriteLine($"Count: {files.Count}");
+
+        foreach (var mimetype in files)
+        {
+            var ext = Path.GetExtension(mimetype.Name);
+            if (!string.IsNullOrEmpty(ext) && !mimetypes.ContainsKey(ext))
+            {
+                mimetypes.Add(ext, mimetype.MimeType);
+            }
+            else if (string.IsNullOrEmpty(ext))
+            {
+                var test = mimetype.Parents?[0] ?? "";
+                Console.WriteLine($"Name: {mimetype.Name} -- Parent: {test} -- MimeType: {mimetype.MimeType}");
+            }
+        }
+
+        return mimetypes;
+    }
+
     public string? CreateFile(UserCredential credentials, string localFilePath, string parentId, string name,
         string mimeType)
     {
@@ -326,13 +371,13 @@ public class CloudStorageRepository(ILogger<CloudStorageRepository> logger) : IC
 
         return null;
     }
-    
+
     public async Task<List<Folder>> GetAllFoldersPlainList(UserCredential credentials, string parentId,
         string parentName, CancellationToken cancellationToken)
     {
         //TODO: MAYBE SPEED CAN BE IMPROVED BY LOADING ALL FOLDERS WHEN IT FIRST RUN INSTEAD OF NAVIGATING LEVELS AS IT'S NOW.
         var folders = new List<Folder>();
-        
+
         using var driveService = new DriveService(new BaseClientService.Initializer()
             { HttpClientInitializer = credentials, ApplicationName = "Synkr" });
 

@@ -1,8 +1,8 @@
 ﻿using CloudSynkr.Models;
+using CloudSynkr.Models.Exceptions;
 using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
 using CloudSynkr.Utils;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 using File = CloudSynkr.Models.File;
 
@@ -106,11 +106,19 @@ public class UploadService(
 
         foreach (var localFile in files)
         {
-            var mimeType = MimeTypeMapHelper.GetMimeType(localFile.Name);
-            var cloudFile = cloudFiles.FirstOrDefault(f => f.Name == localFile.Name);
-            
+            File? cloudFile = null;
+
             try
             {
+                var mimeType = MimeTypeMapHelper.GetMimeType(localFile.Name);
+                if (string.IsNullOrEmpty(mimeType))
+                {
+                    logger.LogWarning(Constants.Exceptions.MimeTypeDoesntExistsOnMapping, localFile.Name, MimeTypeMapHelper.GetDefaultMimeType());
+                    mimeType = MimeTypeMapHelper.GetDefaultMimeType();
+                }
+                
+                cloudFile = cloudFiles.FirstOrDefault(f => f.Name == localFile.Name);
+
                 if (cloudFile == null)
                 {
                     cloudStorageRepository.CreateFile(credentials, localFile.Path, folderId, localFile.Name, mimeType);
@@ -125,6 +133,11 @@ public class UploadService(
                     localFile.ParentId = cloudFile.ParentId;
                     await cloudStorageRepository.UpdateFile(credentials, localFile.Path, localFile);
                 }
+            }
+            catch (MimeTypeException ex)
+            {
+                logger.LogWarning(Constants.Exceptions.FailedToUploadFileTo, cloudFile?.Name , cloudFile?.ParentName ?? localFile.Path);
+                logger.LogError(ex, ex.Message);
             }
             catch (Exception ex)
             {

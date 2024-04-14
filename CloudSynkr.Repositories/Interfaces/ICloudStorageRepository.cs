@@ -29,4 +29,7 @@ public interface ICloudStorageRepository
 
     Task<List<Folder>> GetAllFoldersPlainList(UserCredential credentials, string parentId, string parentName,
         CancellationToken cancellationToken);
+
+    Task<Dictionary<string, string>> GetNewFileMimeTypes(UserCredential credentials,
+        CancellationToken cancellationToken);
 }
