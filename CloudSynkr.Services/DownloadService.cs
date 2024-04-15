@@ -1,4 +1,5 @@
 ﻿using CloudSynkr.Models;
+using CloudSynkr.Models.Exceptions;
 using CloudSynkr.Repositories.Interfaces;
 using CloudSynkr.Services.Interfaces;
 using CloudSynkr.Utils;
@@ -29,7 +30,7 @@ public class DownloadService(
                 folderMap.CloudFolderParentName, folderMap.CloudFolder,
                 cancellationToken);
 
-            await DownloadFilesFromFolders(folderStructure, folderMap.LocalFolder,
+            await DownloadFilesFromFolders(folderStructure, folderMap.LocalFolder, true,
                 cancellationToken);
         }
 
@@ -60,13 +61,13 @@ public class DownloadService(
     }
 
     public async Task<bool> DownloadFilesFromFolders(List<Folder> folderStructure,
-        string localFolder, CancellationToken cancellationToken)
+        string localFolder, bool skipTopFolder, CancellationToken cancellationToken)
     {
         foreach (var folder in folderStructure)
         {
-            var subFolder = Path.Combine(localFolder, folder.Name);
+            var subFolder = skipTopFolder ? localFolder : Path.Combine(localFolder, folder.Name);
             await DownloadFiles(folder.Files, subFolder, cancellationToken);
-            await DownloadFilesFromFolders(folder.Children, subFolder, cancellationToken);
+            await DownloadFilesFromFolders(folder.Children, subFolder, false, cancellationToken);
         }
 
         return true;
@@ -125,5 +126,30 @@ public class DownloadService(
         }
 
         return true;
+    }
+
+    public async Task<Dictionary<string, string>> GetNewFileMimeTypes(CancellationToken cancellationToken)
+    {
+        var credentials = await authService.Login(cancellationToken);
+
+        var mimetypes = await cloudStorageRepository.GetNewFileMimeTypes(credentials, cancellationToken);
+
+        foreach (var mimetype in mimetypes)
+        {
+            try
+            {
+                var mime = MimeTypeMapHelper.GetMimeType(mimetype.Key);
+                if (string.IsNullOrEmpty(mime))
+                {
+                    Console.WriteLine($"{{\"{mimetype.Key}\", \"{mimetype.Value}\"}},");
+                }
+            }
+            catch (MimeTypeException ex)
+            {
+                Console.WriteLine($"{{\"{mimetype.Key}\", \"{mimetype.Value}\"}},");
+            }
+        }
+
+        return mimetypes;
     }
 }

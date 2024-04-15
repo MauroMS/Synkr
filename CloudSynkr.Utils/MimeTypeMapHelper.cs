@@ -1,4 +1,10 @@
-﻿namespace CloudSynkr.Utils;
+﻿// COPIED FROM https://github.com/samuelneff/MimeTypeMap
+// I'm not using its nuget package as it's outdated.
+
+using CloudSynkr.Models;
+using CloudSynkr.Models.Exceptions;
+
+namespace CloudSynkr.Utils;
 
 public static class MimeTypeMapHelper
 {
@@ -13,6 +19,26 @@ public static class MimeTypeMapHelper
     {
         var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            #region Extra mappings
+
+            { ".lpl", "application/octet-stream" },
+            { ".state", "application/octet-stream" },
+            { ".log", "text/plain" },
+            { ".vkshadercache", "application/octet-stream" },
+            { ".srm", "application/octet-stream" },
+            { ".mcr", "application/octet-stream" },
+            { ".sav", "application/octet-stream" },
+            { ".dsv", "application/octet-stream" },
+            { ".metadata", "application/octet-stream" },
+            { ".rtc", "application/octet-stream" },
+            { ".srm copy", "application/octet-stream" },
+            { ".state1", "application/octet-stream" },
+            { ".state2", "application/octet-stream" },
+            { ".smc", "application/octet-stream" },
+            { ".dmg", "application/x-apple-diskimage" },
+
+            #endregion
+
             #region Big freaking list of mime types
 
             // maps both ways,
@@ -31,7 +57,6 @@ public static class MimeTypeMapHelper
             // Some added based on http://www.iana.org/assignments/media-types/media-types.xhtml
             // which lists mime types, but not extensions
             //
-            { ".lpl", "application/octet-stream" },
             { ".323", "text/h323" },
             { ".3g2", "video/3gpp2" },
             { ".3gp", "video/3gpp" },
@@ -743,12 +768,9 @@ public static class MimeTypeMapHelper
 
         var cache = mappings.ToList(); // need ToList() to avoid modifying while still enumerating
 
-        foreach (var mapping in cache)
+        foreach (var mapping in cache.Where(mapping => !mappings.ContainsKey(mapping.Value)))
         {
-            if (!mappings.ContainsKey(mapping.Value))
-            {
-                mappings.Add(mapping.Value, mapping.Key);
-            }
+            mappings.Add(mapping.Value, mapping.Key);
         }
 
         return mappings;
@@ -761,11 +783,11 @@ public static class MimeTypeMapHelper
     /// <param name="mimeType">The variable to store the MIME type.</param>
     /// <returns>The MIME type.</returns>
     /// <exception cref="ArgumentNullException" />
-    public static bool TryGetMimeType(string str, out string mimeType)
+    private static bool TryGetMimeType(string str, out string mimeType)
     {
         if (str == null)
         {
-            throw new ArgumentNullException(nameof(str));
+            throw new MimeTypeException(Constants.Exceptions.MimeTypeCannotBeNull);
         }
 
         var indexQuestionMark = str.IndexOf(QuestionMark, StringComparison.Ordinal);
@@ -773,8 +795,7 @@ public static class MimeTypeMapHelper
         {
             str = str.Remove(indexQuestionMark);
         }
-
-
+        
         if (!str.StartsWith(Dot))
         {
             var index = str.LastIndexOf(Dot);
@@ -797,9 +818,20 @@ public static class MimeTypeMapHelper
     /// <exception cref="ArgumentNullException" />
     public static string GetMimeType(string str)
     {
-        return TryGetMimeType(str, out var result) ? result : DefaultMimeType;
+        //TODO: DECIDE IF THROW EXCEPTION OR RETURN EMPTY
+        // if (!TryGetMimeType(str, out var result))
+        // {
+        //     throw new MimeTypeException(string.Format(Constants.Exceptions.MimeTypeDoesntExistsOnMapping, str));
+        // }
+
+        return TryGetMimeType(str, out var result) ? result : "";
     }
 
+    public static string GetDefaultMimeType()
+    {
+        return DefaultMimeType;
+    }
+    
     /// <summary>
     /// Gets the extension from the provided MINE type.
     /// </summary>

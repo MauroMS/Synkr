@@ -36,32 +36,34 @@ public class SyncService(
     private async Task<bool> Download(CancellationToken cancellationToken)
     {
         logger.LogInformation(Constants.Information.StartedDownload);
-
+        
         var mappedFolders = syncBackupConfig.Value.Mappings
             .Where(m => m.ActionType is BackupActionType.DownloadOnly or BackupActionType.Sync).ToList();
-
+        
         if (mappedFolders.Count == 0)
             logger.LogInformation(Constants.Information.NoFilesFoldersToDownload);
         else
             await downloadService.Download(mappedFolders, cancellationToken);
-
+        
         logger.LogInformation(Constants.Information.FinishedDownload);
 
+        // await downloadService.GetNewFileMimeTypes(cancellationToken);
+        
         return true;
     }
 
     private async Task<bool> Upload(CancellationToken cancellationToken)
     {
         logger.LogInformation(Constants.Information.StartingUpload);
-
+        
         var mappedFolders = syncBackupConfig.Value.Mappings
             .Where(m => m.ActionType is BackupActionType.UploadOnly or BackupActionType.Sync).ToList();
-
+        
         if (mappedFolders.Count == 0)
             logger.LogInformation(Constants.Information.NoFilesFoldersToUpload);
         else
             await uploadService.Upload(mappedFolders, cancellationToken);
-
+        
         logger.LogInformation(Constants.Information.FinishedUpload);
 
         return true;
