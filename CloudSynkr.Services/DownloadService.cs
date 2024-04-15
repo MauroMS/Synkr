@@ -30,7 +30,7 @@ public class DownloadService(
                 folderMap.CloudFolderParentName, folderMap.CloudFolder,
                 cancellationToken);
 
-            await DownloadFilesFromFolders(folderStructure, folderMap.LocalFolder,
+            await DownloadFilesFromFolders(folderStructure, folderMap.LocalFolder, true,
                 cancellationToken);
         }
 
@@ -61,13 +61,13 @@ public class DownloadService(
     }
 
     public async Task<bool> DownloadFilesFromFolders(List<Folder> folderStructure,
-        string localFolder, CancellationToken cancellationToken)
+        string localFolder, bool skipTopFolder, CancellationToken cancellationToken)
     {
         foreach (var folder in folderStructure)
         {
-            var subFolder = Path.Combine(localFolder, folder.Name);
+            var subFolder = skipTopFolder ? localFolder : Path.Combine(localFolder, folder.Name);
             await DownloadFiles(folder.Files, subFolder, cancellationToken);
-            await DownloadFilesFromFolders(folder.Children, subFolder, cancellationToken);
+            await DownloadFilesFromFolders(folder.Children, subFolder, false, cancellationToken);
         }
 
         return true;

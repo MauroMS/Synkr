@@ -8,7 +8,7 @@ public interface IUploadService
     Task<bool> Upload(List<Mapping> mappings, CancellationToken cancellationToken);
 
     Task<bool> UploadFilesToFolders(List<Folder> folderStructure,
-        string cloudFolderPath, string parentId, CancellationToken cancellationToken);
+        string cloudFolderPath, string parentId, bool skipTopFolderCreation, CancellationToken cancellationToken);
 
     Task<List<Folder>> GetFolderStructureToUpload(string folderPath);
 
